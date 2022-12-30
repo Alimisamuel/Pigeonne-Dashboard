@@ -5,6 +5,7 @@ import { Box, Divider, Typography, Stack, MenuItem, Avatar, IconButton, Popover 
 // mocks_
 import { Link } from 'react-router-dom';
 import account from '../../../_mock/account';
+import { useUserAuth } from '../../../context/AuthContexts';
 
 // ----------------------------------------------------------------------
 
@@ -26,14 +27,24 @@ const MENU_OPTIONS = [
 // ----------------------------------------------------------------------
 
 export default function AccountPopover() {
+  const {user, logOut} = useUserAuth();
   const [open, setOpen] = useState(null);
-
+console.log("sammy", user)
   const handleOpen = (event) => {
     setOpen(event.currentTarget);
   };
+const handleCloseModal = () =>{
+  setOpen(null);
+}
+  const handleClose = async() => {
 
-  const handleClose = () => {
-    setOpen(null);
+
+    try{
+await logOut();
+setOpen(null);
+    }catch (err){
+console.log(err.message)
+    }
   };
 
   return (
@@ -61,7 +72,7 @@ export default function AccountPopover() {
       <Popover
         open={Boolean(open)}
         anchorEl={open}
-        onClose={handleClose}
+        onClose={handleCloseModal}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
         transformOrigin={{ vertical: 'top', horizontal: 'right' }}
         PaperProps={{
@@ -90,17 +101,17 @@ export default function AccountPopover() {
 
         <Stack sx={{ p: 1 }}>
           {MENU_OPTIONS.map((option) => (
-            <MenuItem key={option.label} onClick={handleClose}>
+            <MenuItem key={option.label}>
               {option.label}
             </MenuItem>
           ))}
         </Stack>
 
         <Divider sx={{ borderStyle: 'dashed' }} />
-<Link to="/login">
+
         <MenuItem onClick={handleClose} sx={{ m: 1 }}>
           Logout
-        </MenuItem></Link>
+        </MenuItem>
       </Popover>
     </>
   );

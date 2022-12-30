@@ -4,6 +4,7 @@ import { Helmet } from 'react-helmet-async';
 import { Grid, Container, Typography } from '@mui/material';
 // components
 // sections
+import { useUserAuth } from '../context/AuthContexts';
 import {
 
   AppWidgetSummary,
@@ -12,7 +13,7 @@ import {
 // ----------------------------------------------------------------------
 
 export default function DashboardAppPage() {
-
+const {user } = useUserAuth(); 
 
   return (
     <>
@@ -22,7 +23,7 @@ export default function DashboardAppPage() {
 
       <Container maxWidth="xl">
         <Typography variant="h4" sx={{ mb: 5 }}>
-          Hi, Welcome back
+          Hi, Welcome back {user && user.email}
         </Typography>
 
         <Grid container spacing={3}>

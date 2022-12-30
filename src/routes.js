@@ -1,5 +1,6 @@
 import { Navigate, useRoutes } from 'react-router-dom';
 // layouts
+import ProtectedRoute from './sections/@dashboard/ProtectedRoute';
 import DashboardLayout from './layouts/dashboard';
 import SimpleLayout from './layouts/simple';
 //
@@ -9,16 +10,18 @@ import Page404 from './pages/Page404';
 
 import DashboardAppPage from './pages/DashboardAppPage';
 
+
 // ----------------------------------------------------------------------
 
 export default function Router() {
+
   const routes = useRoutes([
     {
       path: '/dashboard',
-      element: <DashboardLayout />,
+      element: <ProtectedRoute> <DashboardLayout /></ProtectedRoute> ,
       children: [
         { element: <Navigate to="/dashboard/app" />, index: true },
-        { path: 'app', element: <DashboardAppPage /> },
+        { path: 'app', element:  <DashboardAppPage /> },
        
       ],
     },
@@ -44,5 +47,7 @@ export default function Router() {
     },
   ]);
 
+
   return routes;
+
 }
