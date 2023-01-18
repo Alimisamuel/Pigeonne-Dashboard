@@ -1,51 +1,51 @@
 import { useState } from 'react';
 // @mui
 import { alpha } from '@mui/material/styles';
-import { Box, Divider, Typography, Stack, MenuItem, Avatar, IconButton, Popover } from '@mui/material';
+import { Box, Divider, Typography, Stack, MenuItem, Avatar, IconButton, Popover, Skeleton } from '@mui/material';
 // mocks_
 import { Link } from 'react-router-dom';
+import { useLogout } from '../../../hooks/useLogout'
+
 import account from '../../../_mock/account';
-import { useUserAuth } from '../../../context/AuthContexts';
+import { useAuthContext } from '../../../hooks/useAuthContext';
+// import { useUserAuth } from '../../../context/AuthContexts';
 
 // ----------------------------------------------------------------------
 
 const MENU_OPTIONS = [
-  {
-    label: 'Home',
-    icon: 'eva:home-fill',
-  },
+
   {
     label: 'Profile',
     icon: 'eva:person-fill',
   },
-  {
-    label: 'Settings',
-    icon: 'eva:settings-2-fill',
-  },
+
 ];
 
 // ----------------------------------------------------------------------
 
 export default function AccountPopover() {
-  const {user, logOut} = useUserAuth();
+
+  // const {user, logOut} = useUserAuth();
   const [open, setOpen] = useState(null);
-console.log("sammy", user)
+  const {user} = useAuthContext()
+  const {logout} = useLogout()
+
   const handleOpen = (event) => {
     setOpen(event.currentTarget);
   };
 const handleCloseModal = () =>{
   setOpen(null);
 }
-  const handleClose = async() => {
+//   const handleClose = async() => {
 
 
-    try{
-await logOut();
-setOpen(null);
-    }catch (err){
-console.log(err.message)
-    }
-  };
+//     try{
+// await logOut();
+// setOpen(null);
+//     }catch (err){
+// console.log(err.message)
+//     }
+//   };
 
   return (
     <>
@@ -66,7 +66,11 @@ console.log(err.message)
           }),
         }}
       >
-        <Avatar src={account.photoURL} alt="photoURL" />
+        <Avatar >
+        { user === null?
+            <Skeleton variant="circular" width={40} height={40} />:
+              user.displayName.charAt(0)} 
+          </Avatar>
       </IconButton>
 
       <Popover
@@ -90,10 +94,15 @@ console.log(err.message)
       >
         <Box sx={{ my: 1.5, px: 2.5 }}>
           <Typography variant="subtitle2" noWrap>
-            {account.displayName}
+            {/* {account.displayName} */}
           </Typography>
           <Typography variant="body2" sx={{ color: 'text.secondary' }} noWrap>
-            {account.email}
+
+
+          {user == null ?
+           <Skeleton variant="rectangular" width={100} height={10} sx={{background:'#f0f0f0b3'}} />:
+           user.email
+           }
           </Typography>
         </Box>
 
@@ -109,7 +118,7 @@ console.log(err.message)
 
         <Divider sx={{ borderStyle: 'dashed' }} />
 
-        <MenuItem onClick={handleClose} sx={{ m: 1 }}>
+        <MenuItem  sx={{ m: 1 }} onClick={logout} >
           Logout
         </MenuItem>
       </Popover>

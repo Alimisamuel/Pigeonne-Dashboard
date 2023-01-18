@@ -1,53 +1,40 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 // @mui
-import { Link, Stack, IconButton, InputAdornment, TextField, Checkbox, Alert } from '@mui/material';
+import { Link, Stack, IconButton, InputAdornment, TextField, Typography, Checkbox, Alert } from '@mui/material';
+import { Box } from '@mui/system';
 import { LoadingButton } from '@mui/lab';
+import SaveIcon from '@mui/icons-material/Save';
 // components
-import { useUserAuth } from '../../../context/AuthContexts';
+import {useLogin} from '../../../hooks/useLogin'
 import Iconify from '../../../components/iconify';
 
 // ----------------------------------------------------------------------
 
 export default function LoginForm() {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const navigate = useNavigate();
-  const {logIn} = useUserAuth();
-  const [error, setError] = useState("")
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+
+
+const {login , isPending, error} = useLogin()
   const [showPassword, setShowPassword] = useState(false);
-
-
-
 
   const handleClick = async (e) => {
     // navigate('/dashboard', { replace: true });
-e.preventDefault() 
- 
-try{
-await logIn(email, password)
-navigate("/dashboard")
-}catch(error){
-  setError(error.message)
-}
+    e.preventDefault();
 
+    login(email, password)
   };
-
-
-
 
   return (
     <>
-     
       <Stack spacing={3}>
-      {error && <Alert severity='error'>{error}</Alert>}
-        <TextField name="email" label="Email address"
-        onChange={(e)=>setEmail(e.target.value)}
-        value={email} />
+        {error && <Alert severity="error">{error}</Alert>}
+        <TextField name="email" label="Email address" onChange={(e) => setEmail(e.target.value)} value={email} />
 
         <TextField
-                onChange={(e)=>setPassword(e.target.value)}
-                value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          value={password}
           name="password"
           label="Password"
           type={showPassword ? 'text' : 'password'}
@@ -64,15 +51,22 @@ navigate("/dashboard")
       </Stack>
 
       <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ my: 2 }}>
-        <Checkbox name="remember" label="Remember me" />
-        <Link variant="subtitle2" underline="hover">
+        <Box sx={{display:'flex', alignItems:'center'}}>
+        <Checkbox name="remember" label="Remember me" /> <Typography variant="subtitle2">Remember me</Typography></Box>
+        <Link variant="subtitle2" underline="hover" href="/forgetPassword">
           Forgot password?
         </Link>
       </Stack>
 
-      <LoadingButton fullWidth size="large" type="submit" variant="contained" onClick={handleClick}>
+      {!isPending && 
+      <LoadingButton fullWidth size="large" type="submit" onClick={handleClick} variant="contained">
         Login
-      </LoadingButton>
+      </LoadingButton>}
+{isPending && 
+      <LoadingButton   loading
+      loadingPosition="start"      startIcon={<SaveIcon />} fullWidth size="large" type="submit" variant="contained" disabled >
+        Loging in
+      </LoadingButton>}
     </>
   );
 }

@@ -1,23 +1,46 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import PropTypes from 'prop-types';
 // @mui
 import { ThemeProvider, createTheme, styled } from '@mui/material/styles';
+import LocationOnIcon from '@mui/icons-material/LocationOn';
+import { debounce } from '@mui/material/utils';
 import CssBaseline from '@mui/material/CssBaseline';
+import SaveIcon from '@mui/icons-material/Save';
 // import CloseIcon from '@mui/icons-material/Close';
 import Modal from '@mui/material/Modal';
-import { Box, Stack, AppBar, Toolbar, IconButton, Button, Typography, TextField, Autocomplete } from '@mui/material';
+import { LoadingButton } from '@mui/lab';
+import { Box, Stack, AppBar, Toolbar, IconButton, Button, Typography, TextField, Grid, Autocomplete, Alert } from '@mui/material';
+import parse from 'autosuggest-highlight/parse';
 // utils
 import { bgBlur } from '../../../utils/cssStyles';
 // components
 import Iconify from '../../../components/iconify';
-//
-// import Searchbar from './Searchbar';
+import { useAuthContext } from '../../../hooks/useAuthContext';
+
 import AccountPopover from './AccountPopover';
-// import LanguagePopover from './LanguagePopover';
-// import NotificationsPopover from './NotificationsPopover';
+import {useFirestore} from '../../../hooks/useFirestore'
 
 // ----------------------------------------------------------------------
 
+
+const GOOGLE_MAPS_API_KEY = 'AIzaSyCoybA7QMl3eQP8of1wWW-FhUeYwrk0V1o';
+
+function loadScript(src, position, id) {
+  if (!position) {
+    return;
+  }
+ 
+
+  const script = document.createElement('script');
+  script.setAttribute('async', '');
+  script.setAttribute('id', id);
+  script.src = src;
+  position.appendChild(script);
+}
+
+
+
+const autocompleteService = { current: null };
 const NAV_WIDTH = 280;
 
 const HEADER_MOBILE = 64;
@@ -74,10 +97,107 @@ Header.propTypes = {
 };
 
 export default function Header({ onOpenNav }) {
-
+  const [value, setValue] =useState(null);
+  const [inputValue, setInputValue] =useState('');
+  const [options, setOptions] = useState([]);
   const [open, setOpen] = useState(false);
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
+  const loaded =useRef(false)
+  const {addDocument, response} = useFirestore('properties')
+  const [propUnit, setPropUnit] = useState('')
+  const [propName, setPropName] = useState('')
+  const [country, setCountry] = useState('')
+  const [propState, setPropState] = useState('')
+  const [zipCode, setZipCode] = useState("")
+  const {user} = useAuthContext()
+
+  if (typeof window !== 'undefined' && !loaded.current) {
+    if (!document.querySelector('#google-maps')) {
+      loadScript(
+        `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&libraries=places`,
+        document.querySelector('head'),
+        'google-maps',
+      );
+    }
+
+    loaded.current = true;
+  }
+
+
+  const fetch = useMemo(
+    () =>
+      debounce((request, callback) => {
+        autocompleteService.current.getPlacePredictions(request, callback);
+      }, 400),
+    [],
+  );
+
+  useEffect(() => {
+    let active = true;
+
+    if (!autocompleteService.current && window.google) {
+      autocompleteService.current =
+        new window.google.maps.places.AutocompleteService();
+    }
+    if (!autocompleteService.current) {
+      return undefined;
+    }
+
+    if (inputValue === '') {
+      setOptions(value ? [value] : []);
+      return undefined;
+    }
+
+    fetch({ input: inputValue }, (results) => {
+      if (active) {
+        let newOptions = [];
+
+        if (value) {
+          newOptions = [value];
+        }
+
+        if (results) {
+          newOptions = [...newOptions, ...results];
+        }
+
+        setOptions(newOptions);
+      }
+    });
+
+    return () => {
+      active = false;
+
+    };
+  }, [value, inputValue, fetch]);
+
+
+  const handleCreateProperty = (e) =>{
+    e.preventDefault()
+    const address = value.description
+    addDocument( {uid:user.uid,propName, address, country, propState, zipCode, propUnit})
+  }
+
+  useEffect(()=>{
+    if(response.success){
+      setPropName('')
+      setValue('')
+      setPropState('')
+      setPropUnit('')
+     setZipCode('')
+
+     setTimeout(()=>{
+      response.success=false;
+     }, 500)
+      
+    }
+    
+  }, [response.success])
+
+
+  // const NewSammy = value.terms.splice(-1)
+  // console.log("Meeee",NewSammy)
+
   return (
     <ThemeProvider theme={darkTheme}>
     <CssBaseline />
@@ -113,6 +233,14 @@ export default function Header({ onOpenNav }) {
       </StyledToolbar>
     </StyledRoot>
 
+
+
+
+
+
+
+    {/* /////////////////.................MODAL..............///////////////// */}
+
     <Modal
                   open={open}
                
@@ -134,64 +262,146 @@ export default function Header({ onOpenNav }) {
                       please fill in all forms
                     </Typography>
                     <Box sx={{mt:4}}>
+                    {response.success && <Alert severity="success">Apartment created successfully</Alert>}
+                    {response.error === true && <Alert severity="error">{response.error}</Alert>}
                       <TextField
+                      required
                       helperText="Please type in a title or name of your property"
                       size="small"
                       type="text"
+                      value={propName}
+                      onChange={(e)=>setPropName(e.target.value)}
                       label="Preferred Property Name"
                       fullWidth
                       margin='normal'
                       />
-                        <TextField
-                        // ref={autoCompleteRef}
-                        // onChange={event => setQuery(event.target.value)}
-                        autoComplete="off"
-                      helperText="Number of property units"
-                      size="small"
-                      type="text"
-                      label="Address"
+                      <Autocomplete
+                      required
                       fullWidth
-                      margin='normal'
-                      />
-                     <Autocomplete
-                     size='small'
-      disablePortal
-      id="combo-box-demo"
-      fullWidth
-      options={top100Films}
-      mb={2}
-      sx={{ width: 300 , mb:3}}
-      renderInput={(params) => <TextField {...params} label="City" />}
+                      size='small'
+      id="google-map-demo"
+      sx={{  }}
+      getOptionLabel={(option) =>
+        typeof option === 'string' ? option : option.description
+      }
+      filterOptions={(x) => x}
+      options={options}
+      autoComplete
+      includeInputInList
+      filterSelectedOptions
+      value={value}
+      noOptionsText="No locations"
+      onChange={(event, newValue) => {
+        setOptions(newValue ? [newValue, ...options] : options);
+        setValue(newValue);        
+      }}
+      onInputChange={(event, newInputValue) => {
+        setInputValue(newInputValue);
+      }}
+      renderInput={(params) => (
+        <TextField {...params} label="Add a location" fullWidth />
+      )}
+      renderOption={(props, option) => {
+        const matches =
+          option.structured_formatting.main_text_matched_substrings || [];
+
+        const parts = parse(
+          option.structured_formatting.main_text,
+          matches.map((match) => [match.offset, match.offset + match.length]),
+   
+        );
+
+        return (
+          <li {...props}>
+            <Grid container alignItems="center">
+              <Grid item sx={{ display: 'flex', width: 44 }}>
+                <LocationOnIcon sx={{ color: 'text.secondary' }} />
+              </Grid>
+              <Grid item sx={{ width: 'calc(100% - 44px)', wordWrap: 'break-word' }}>
+                {parts.map((part, index) => (
+                  <Box
+                    key={index}
+                    component="span"
+                    sx={{ fontWeight: part.highlight ? 'bold' : 'regular' }}
+                  >
+                    {part.text}
+                  </Box>
+                ))}
+
+                <Typography variant="body2" color="text.secondary">
+                  {option.structured_formatting.secondary_text}
+               
+                </Typography>
+              </Grid>
+            </Grid>
+          </li>
+        );
+      }}
     />
-                     <Autocomplete
-                     size='small'
-      disablePortal
-      id="combo-box-demo"
-      fullWidth
-      margin="normal"
-      options={top100Films}
-      sx={{ width: 300 ,}}
-      renderInput={(params) => <TextField {...params} label="State" />}
-    />
-                   
-                      <TextField
+
+                   <Grid container spacing={2}>
+                    <Grid item lg={6}>
+                    <TextField
+                 required
+                 size="small"
+                 type="text"
+                 label="State"
+                 value={propState}
+                 onChange={(e)=>setPropState(e.target.value)}
+                 fullWidth
+                 margin='normal'
+                 />
+                    </Grid>
+                 <Grid item lg={6}>   
+
+                    <TextField
+                    required
+                 fullWidth
+                 size="small"
+                 type="text"
+                 label="Country"
+                 value={country}
+                 onChange={(e)=>setCountry(e.target.value)}
+                 margin='normal'
+                 />
+                    </Grid>
+                
                  
-                      size="small"
-                      type="text"
-                      label="Zip Code"
-                      
-                      margin='normal'
-                      />
+             
+                      </Grid>
                       <TextField
+                      required
+                 fullWidth
+                 size="small"
+                 type="text"
+                 value={zipCode}
+                 onChange={(e)=>setZipCode(e.target.value)}
+                 label="Zip Code"
+                 
+                 margin='normal'
+                 />
+                      <TextField
+                      required
                       helperText="Number of property units"
                       size="small"
                       type="number"
                       label="No. of Unit"
+                      value={propUnit}
+                      onChange={(e)=>setPropUnit(e.target.value)}
                       fullWidth
                       margin='normal'
                       />
-                      <Box sx={{display:'flex', justifyContent:'right'}}>
-                        <Button variant='contained' >Create</Button>
+                      <Box sx={{display:'flex', justifyContent:'right', mt:6}}>
+                     
+      {!response.isPending && 
+      <LoadingButton fullWidth size="large" type="submit" onClick={handleCreateProperty} variant="contained">
+        Create
+      </LoadingButton>}
+{response.isPending && 
+      <LoadingButton   loading
+      loadingPosition="start"      startIcon={<SaveIcon />} fullWidth size="large" type="submit" variant="contained" disabled >
+        Creating
+      </LoadingButton>}
                       </Box>
                     </Box>
                   </Box>
@@ -201,129 +411,3 @@ export default function Header({ onOpenNav }) {
 }
 
 
-const top100Films = [
-  { label: 'Alabama', year: 1994 },
-  { label: 'Alaska', year: 1972 },
-  { label: 'Arizona', year: 1974 },
-  { label: 'Arkansas', year: 2008 },
-  { label: 'California', year: 1957 },
-  { label: "Colorado", year: 1993 },
-  { label: 'Connecticut', year: 1994 },
-  {
-    label: 'Delaware',
-    year: 2003,
-  },
-  { label: 'Florida', year: 1966 },
-  { label: 'Fight Club', year: 1999 },
-  {
-    label: 'Georgia',
-    year: 2001,
-  },
-  {
-    label: 'Hawaii',
-    year: 1980,
-  },
-  { label: 'Idaho', year: 1994 },
-  { label: 'Illinios', year: 2010 },
-  {
-    label: 'The Lord of the Rings: The Two Towers',
-    year: 2002,
-  },
-  { label: "One Flew Over the Cuckoo's Nest", year: 1975 },
-  { label: 'Goodfellas', year: 1990 },
-  { label: 'The Matrix', year: 1999 },
-  { label: 'Seven Samurai', year: 1954 },
-  {
-    label: 'Star Wars: Episode IV - A New Hope',
-    year: 1977,
-  },
-  { label: 'City of God', year: 2002 },
-  { label: 'Se7en', year: 1995 },
-  { label: 'The Silence of the Lambs', year: 1991 },
-  { label: "It's a Wonderful Life", year: 1946 },
-  { label: 'Life Is Beautiful', year: 1997 },
-  { label: 'The Usual Suspects', year: 1995 },
-  { label: 'Léon: The Professional', year: 1994 },
-  { label: 'Spirited Away', year: 2001 },
-  { label: 'Saving Private Ryan', year: 1998 },
-  { label: 'Once Upon a Time in the West', year: 1968 },
-  { label: 'American History X', year: 1998 },
-  { label: 'Interstellar', year: 2014 },
-  { label: 'Casablanca', year: 1942 },
-  { label: 'City Lights', year: 1931 },
-  { label: 'Psycho', year: 1960 },
-  { label: 'The Green Mile', year: 1999 },
-  { label: 'The Intouchables', year: 2011 },
-  { label: 'Modern Times', year: 1936 },
-  { label: 'Raiders of the Lost Ark', year: 1981 },
-  { label: 'Rear Window', year: 1954 },
-  { label: 'The Pianist', year: 2002 },
-  { label: 'The Departed', year: 2006 },
-  { label: 'Terminator 2: Judgment Day', year: 1991 },
-  { label: 'Back to the Future', year: 1985 },
-  { label: 'Whiplash', year: 2014 },
-  { label: 'Gladiator', year: 2000 },
-  { label: 'Memento', year: 2000 },
-  { label: 'The Prestige', year: 2006 },
-  { label: 'The Lion King', year: 1994 },
-  { label: 'Apocalypse Now', year: 1979 },
-  { label: 'Alien', year: 1979 },
-  { label: 'Sunset Boulevard', year: 1950 },
-  {
-    label: 'Dr. Strangelove or: How I Learned to Stop Worrying and Love the Bomb',
-    year: 1964,
-  },
-  { label: 'The Great Dictator', year: 1940 },
-  { label: 'Cinema Paradiso', year: 1988 },
-  { label: 'The Lives of Others', year: 2006 },
-  { label: 'Grave of the Fireflies', year: 1988 },
-  { label: 'Paths of Glory', year: 1957 },
-  { label: 'Django Unchained', year: 2012 },
-  { label: 'The Shining', year: 1980 },
-  { label: 'WALL·E', year: 2008 },
-  { label: 'American Beauty', year: 1999 },
-  { label: 'The Dark Knight Rises', year: 2012 },
-  { label: 'Princess Mononoke', year: 1997 },
-  { label: 'Aliens', year: 1986 },
-  { label: 'Oldboy', year: 2003 },
-  { label: 'Once Upon a Time in America', year: 1984 },
-  { label: 'Witness for the Prosecution', year: 1957 },
-  { label: 'Das Boot', year: 1981 },
-  { label: 'Citizen Kane', year: 1941 },
-  { label: 'North by Northwest', year: 1959 },
-  { label: 'Vertigo', year: 1958 },
-  {
-    label: 'Star Wars: Episode VI - Return of the Jedi',
-    year: 1983,
-  },
-  { label: 'Reservoir Dogs', year: 1992 },
-  { label: 'Braveheart', year: 1995 },
-  { label: 'M', year: 1931 },
-  { label: 'Requiem for a Dream', year: 2000 },
-  { label: 'Amélie', year: 2001 },
-  { label: 'A Clockwork Orange', year: 1971 },
-  { label: 'Like Stars on Earth', year: 2007 },
-  { label: 'Taxi Driver', year: 1976 },
-  { label: 'Lawrence of Arabia', year: 1962 },
-  { label: 'Double Indemnity', year: 1944 },
-  {
-    label: 'Eternal Sunshine of the Spotless Mind',
-    year: 2004,
-  },
-  { label: 'Amadeus', year: 1984 },
-  { label: 'To Kill a Mockingbird', year: 1962 },
-  { label: 'Toy Story 3', year: 2010 },
-  { label: 'Logan', year: 2017 },
-  { label: 'Full Metal Jacket', year: 1987 },
-  { label: 'Dangal', year: 2016 },
-  { label: 'The Sting', year: 1973 },
-  { label: '2001: A Space Odyssey', year: 1968 },
-  { label: "Singin' in the Rain", year: 1952 },
-  { label: 'Toy Story', year: 1995 },
-  { label: 'Bicycle Thieves', year: 1948 },
-  { label: 'The Kid', year: 1921 },
-  { label: 'Inglourious Basterds', year: 2009 },
-  { label: 'Snatch', year: 2000 },
-  { label: '3 Idiots', year: 2009 },
-  { label: 'Monty Python and the Holy Grail', year: 1975 },
-];

@@ -1,12 +1,13 @@
 // @mui
 import PropTypes from 'prop-types';
 import { alpha, styled ,ThemeProvider, createTheme} from '@mui/material/styles';
-import { Card, Typography } from '@mui/material';
+import { Card, CircularProgress, Typography } from '@mui/material';
 import CssBaseline from '@mui/material/CssBaseline';
 // utils
 import { fShortenNumber } from '../../../utils/formatNumber';
 // components
 import Iconify from '../../../components/iconify';
+import { useCollection } from '../../../hooks/useCollection';
 
 // ----------------------------------------------------------------------
 
@@ -41,6 +42,8 @@ AppWidgetSummary.propTypes = {
 };
 
 export default function AppWidgetSummary({ title, total, icon, color = 'primary', sx, ...other }) {
+  const {document} = useCollection('properties')
+  console.log(document)
   return (
     <ThemeProvider theme={darkTheme}>
     <CssBaseline />
@@ -68,7 +71,15 @@ export default function AppWidgetSummary({ title, total, icon, color = 'primary'
         <Iconify icon={icon} width={24} height={24} />
       </StyledIcon>
 
-      <Typography variant="h3">{fShortenNumber(total)}</Typography>
+
+        
+        {(total) === 0 ?
+         <CircularProgress color="inherit" />
+         :
+         <Typography variant="h3">
+       { fShortenNumber(total)}
+        </Typography>
+        }
 
       <Typography variant="subtitle2" sx={{ opacity: 0.72 }}>
         {title}

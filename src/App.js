@@ -5,19 +5,19 @@ import ThemeProvider from './theme';
 // components
 import ScrollToTop from './components/scroll-to-top';
 import { StyledChart } from './components/chart';
-import { UserAuthContextProvider } from './context/AuthContexts';
+// import { UserAuthContextProvider } from './context/AuthContexts';
 
 // ----------------------------------------------------------------------
 
 export default function App() {
   return (
     <ThemeProvider>
-      <UserAuthContextProvider>
+      {/* <UserAuthContextProvider> */}
 
       <ScrollToTop />
       <StyledChart />
       <Router />
-      </ UserAuthContextProvider>
+      {/* </ UserAuthContextProvider> */}
     </ThemeProvider>
   );
 }

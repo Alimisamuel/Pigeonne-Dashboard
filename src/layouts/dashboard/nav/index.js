@@ -3,9 +3,10 @@ import { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 // @mui
 import { styled, alpha } from '@mui/material/styles';
-import { Box, Link, Drawer, Typography, Avatar, } from '@mui/material';
+import { Box, Link, Drawer, Typography, Avatar, Skeleton, } from '@mui/material';
 // mock
-import account from '../../../_mock/account';
+import { useAuthContext } from '../../../hooks/useAuthContext';
+
 // hooks
 import useResponsive from '../../../hooks/useResponsive';
 // components
@@ -37,9 +38,9 @@ Nav.propTypes = {
 
 export default function Nav({ openNav, onCloseNav }) {
   const { pathname } = useLocation();
-
+const {user} = useAuthContext()
   const isDesktop = useResponsive('up', 'lg');
-
+// console.log('New User',user.displayName)
   useEffect(() => {
     if (openNav) {
       onCloseNav();
@@ -62,15 +63,25 @@ export default function Nav({ openNav, onCloseNav }) {
       <Box sx={{ mb: 5, mx: 2.5 }}>
         <Link underline="none">
           <StyledAccount>
-            <Avatar src={account.photoURL} alt="photoURL" />
+            <Avatar >
+           { user === null?
+            <Skeleton variant="circular" width={40} height={40} />:
+              user.displayName.charAt(0)} 
+              </Avatar>
 
             <Box sx={{ ml: 2, }}>
               <Typography variant="subtitle2" sx={{ color: '#f0f0f0' }}>
-                {account.displayName}
+           {user == null ?
+           <Skeleton variant="rectangular" width={100} height={20} sx={{background:'#f0f0f0b3'}} />:
+           user.displayName
+           }
               </Typography>
-
-              <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-                {account.role}
+  
+              <Typography variant="body2" sx={{ color: '#f0f0f0b3', fontSize:'11px' }} noWrap>
+              {user == null ?
+           <Skeleton variant="rectangular" width={100} height={10} sx={{background:'#f0f0f0b3'}} />:
+           user.email
+           }
               </Typography>
             </Box>
           </StyledAccount>

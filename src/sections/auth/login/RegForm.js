@@ -3,8 +3,9 @@ import { useNavigate } from 'react-router-dom';
 // @mui
 import { Link, Stack, IconButton, InputAdornment, TextField, Checkbox, Alert } from '@mui/material';
 import { LoadingButton } from '@mui/lab';
+import SaveIcon from '@mui/icons-material/Save';
 // components
-import { useUserAuth } from '../../../context/AuthContexts';
+import { useSignUp } from '../../../hooks/useSignUp';
 import Iconify from '../../../components/iconify';
 
 
@@ -15,22 +16,17 @@ export default function RegForm() {
   const [password, setPassword] = useState('')
   const [displayName, setDisplayName] = useState('')
   const navigate = useNavigate();
-  const {signUp} = useUserAuth();
-  const [error, setError] = useState("")
+  const {signup , isPending, error} = useSignUp()
+
 
 
   const [showPassword, setShowPassword] = useState(false);
 
   const handleClick = async (e) => {
-    // navigate('/dashboard', { replace: true });
+
 e.preventDefault() 
- 
-try{
-await signUp( email, password)
-navigate("/login")
-}catch(error){
-  setError(error.message)
-}
+signup(email, password, displayName)
+
 
   };
 
@@ -38,11 +34,11 @@ navigate("/login")
     <>
       <Stack spacing={3}>
         {error && <Alert severity='error'>{error}</Alert>}
-        <TextField name="text" label="First Name" onChange={(e)=>setDisplayName(e.target.value)} value={displayName}/>
-        <TextField name="text" label="Last Name" />
+
+        <TextField name="text" label="Company Name" onChange={(e)=>setDisplayName(e.target.value)}  value={displayName}/>
         <TextField name="email" label="Email address" 
         value={email} onChange={(e)=>setEmail(e.target.value)}/>
-        <TextField name="text" label="Company Name" />
+      
 
         <TextField
           name="password"
@@ -68,10 +64,15 @@ navigate("/login")
           Forgot password?
         </Link>
       </Stack>
-
-      <LoadingButton fullWidth size="large" type="submit" variant="contained" onClick={handleClick}>
-        Login
-      </LoadingButton>
+{!isPending && 
+      <LoadingButton fullWidth size="large" type="submit" onClick={handleClick} variant="contained">
+        Sign in
+      </LoadingButton>}
+{isPending && 
+      <LoadingButton   loading
+      loadingPosition="start"      startIcon={<SaveIcon />} fullWidth size="large" type="submit" variant="contained" disabled >
+        Signing in
+      </LoadingButton>}
     </>
   );
 }

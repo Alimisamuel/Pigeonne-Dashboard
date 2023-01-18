@@ -2,6 +2,7 @@ import PropTypes from 'prop-types';
 import { NavLink as RouterLink } from 'react-router-dom';
 // @mui
 import { Box, List, ListItemText } from '@mui/material';
+
 //
 import { StyledNavItem, StyledNavItemIcon } from './styles';
 
@@ -40,7 +41,7 @@ function NavItem({ item }) {
         color:'#f0f0f0',
         '&.active': {
           color: '#f0f0f0',
-          borderLeft:'4px solid #000',
+          borderLeft:'4px solid #f0f0f0',
           bgcolor: 'action.selected',
           fontWeight: 'fontWeightBold',
         },

@@ -3,3 +3,13 @@
     background-size: cover;
     
 }
+.dashboard_banner{
+    /* border: 2px solid red; */
+    background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0, 0.7) ),url('../Img/IMG_0431.jpg');
+    background-size: cover;
+    background-position: center;
+    background-position-y: bottom;
+}
+a{
+    text-decoration: none;
+}
