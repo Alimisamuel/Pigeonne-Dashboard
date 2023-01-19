@@ -21,6 +21,7 @@ const logout = async () => {
     await projectAuth.signOut()
     dispatch({type : 'LOGOUT'})
     navigate("/login")
+    window.localStorage.removeItem('user');
 
 
     // update state

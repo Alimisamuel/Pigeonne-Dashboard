@@ -1,14 +1,28 @@
-import { useReducer, useEffect, useState } from "react";
+import { useReducer, useEffect, useState, useRef } from "react";
 import { projectFirestore , timestamp} from "../firebase/Config";
+// import { useAuthContext } from "./useAuthContext";
 
 
 
-export const useCollection = (collection) =>{
+export const useCollection = (collection, _query, _orderBy) =>{
+
+    // const {user} = useAuthContext() 
     const [document, setDocument] = useState(null)
     const [ error, setError] =useState (null)
 
+
+    const query = useRef(_query).current
+    const orderBy = useRef(_orderBy).current
     useEffect(()=>{
-const ref = projectFirestore.collection(collection)
+        
+let ref = projectFirestore.collection(collection)
+
+if (query){
+  ref = ref.where( ...query)
+}
+if(orderBy){
+    ref = ref.orderBy(...orderBy)
+}
 
 const unsubscribe = ref.onSnapshot((snapshot)=>{
     const result = [ ]
@@ -26,8 +40,8 @@ const unsubscribe = ref.onSnapshot((snapshot)=>{
 
 //  unsubsribe on unmount
 return () => unsubscribe()
-    }, [collection])
+    }, [collection, query])
 
-    return {document, error}
+    return {document, error, orderBy}
 
 }

@@ -107,9 +107,6 @@ export default function Header({ onOpenNav }) {
   const {addDocument, response} = useFirestore('properties')
   const [propUnit, setPropUnit] = useState('')
   const [propName, setPropName] = useState('')
-  const [country, setCountry] = useState('')
-  const [propState, setPropState] = useState('')
-  const [zipCode, setZipCode] = useState("")
   const {user} = useAuthContext()
 
   if (typeof window !== 'undefined' && !loaded.current) {
@@ -175,16 +172,15 @@ export default function Header({ onOpenNav }) {
   const handleCreateProperty = (e) =>{
     e.preventDefault()
     const address = value.description
-    addDocument( {uid:user.uid,propName, address, country, propState, zipCode, propUnit})
+    addDocument( {uid:user.uid,propName, address, propUnit})
   }
 
   useEffect(()=>{
     if(response.success){
       setPropName('')
       setValue('')
-      setPropState('')
       setPropUnit('')
-     setZipCode('')
+
 
      setTimeout(()=>{
       response.success=false;
@@ -267,7 +263,7 @@ export default function Header({ onOpenNav }) {
                       <TextField
                       required
                       helperText="Please type in a title or name of your property"
-                      size="small"
+                   
                       type="text"
                       value={propName}
                       onChange={(e)=>setPropName(e.target.value)}
@@ -278,7 +274,7 @@ export default function Header({ onOpenNav }) {
                       <Autocomplete
                       required
                       fullWidth
-                      size='small'
+                
       id="google-map-demo"
       sx={{  }}
       getOptionLabel={(option) =>
@@ -339,52 +335,13 @@ export default function Header({ onOpenNav }) {
       }}
     />
 
-                   <Grid container spacing={2}>
-                    <Grid item lg={6}>
-                    <TextField
-                 required
-                 size="small"
-                 type="text"
-                 label="State"
-                 value={propState}
-                 onChange={(e)=>setPropState(e.target.value)}
-                 fullWidth
-                 margin='normal'
-                 />
-                    </Grid>
-                 <Grid item lg={6}>   
-
-                    <TextField
-                    required
-                 fullWidth
-                 size="small"
-                 type="text"
-                 label="Country"
-                 value={country}
-                 onChange={(e)=>setCountry(e.target.value)}
-                 margin='normal'
-                 />
-                    </Grid>
-                
-                 
-             
-                      </Grid>
-                      <TextField
-                      required
-                 fullWidth
-                 size="small"
-                 type="text"
-                 value={zipCode}
-                 onChange={(e)=>setZipCode(e.target.value)}
-                 label="Zip Code"
-                 
-                 margin='normal'
-                 />
+                   
+                   
                       <TextField
                       required
                       helperText="Number of property units"
-                      size="small"
-                      type="number"
+                     
+                      type="text"
                       label="No. of Unit"
                       value={propUnit}
                       onChange={(e)=>setPropUnit(e.target.value)}

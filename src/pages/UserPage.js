@@ -1,6 +1,8 @@
 import { Helmet } from 'react-helmet-async';
 import { filter } from 'lodash';
 import { sentenceCase } from 'change-case';
+import ApartmentIcon from '@mui/icons-material/Apartment';
+
 import { useState } from 'react';
 // @mui
 import {
@@ -21,7 +23,10 @@ import {
   IconButton,
   TableContainer,
   TablePagination,
+  CssBaseline,
+  Skeleton,
 } from '@mui/material';
+import { ThemeProvider, createTheme, styled } from '@mui/material/styles';
 // components
 import Label from '../components/label';
 import Iconify from '../components/iconify';
@@ -29,16 +34,29 @@ import Scrollbar from '../components/scrollbar';
 // sections
 import { UserListHead, UserListToolbar } from '../sections/@dashboard/user';
 // mock
-import USERLIST from '../_mock/user';
+// import USERLIST from '../_mock/user';
+import { useCollection } from '../hooks/useCollection';
+import { useAuthContext } from '../hooks/useAuthContext';
+import { useFirestore } from '../hooks/useFirestore';
 
 // ----------------------------------------------------------------------
 
+// ----------------------------------------------------------------------
+
+const darkTheme = createTheme({
+  palette: {
+    primary: {
+      main: '#037440',
+    },
+  },
+});
+
 const TABLE_HEAD = [
-  { id: 'name', label: 'Name', alignRight: false },
-  { id: 'company', label: 'Company', alignRight: false },
-  { id: 'role', label: 'Role', alignRight: false },
-  { id: 'isVerified', label: 'Verified', alignRight: false },
-  { id: 'status', label: 'Status', alignRight: false },
+  { id: 'name', label: 'Property Name', alignRight: false },
+  { id: 'company', label: 'ID', alignRight: false },
+  { id: 'role', label: 'Date', alignRight: false },
+  { id: 'isVerified', label: 'Unit Number', alignRight: false },
+  { id: 'status', label: 'Address', alignRight: false },
   { id: '' },
 ];
 
@@ -68,7 +86,7 @@ function applySortFilter(array, comparator, query) {
     return a[1] - b[1];
   });
   if (query) {
-    return filter(array, (_user) => _user.name.toLowerCase().indexOf(query.toLowerCase()) !== -1);
+    return filter(array, (_user) => _user.propName.toLowerCase().indexOf(query.toLowerCase()) !== -1);
   }
   return stabilizedThis.map((el) => el[0]);
 }
@@ -86,7 +104,14 @@ export default function UserPage() {
 
   const [filterName, setFilterName] = useState('');
 
+  const { deleteDocument } = useFirestore('properties');
+  const user = JSON.parse(window.localStorage.getItem('user'));
+  const { document } = useCollection('properties', ['uid', '==', user.uid]);
+  const USERLIST = document ?? [];
+
   const [rowsPerPage, setRowsPerPage] = useState(5);
+
+  console.log(user);
 
   const handleOpenMenu = (event) => {
     setOpen(event.currentTarget);
@@ -149,119 +174,130 @@ export default function UserPage() {
   return (
     <>
       <Helmet>
-        <title> User | Minimal UI </title>
+        <title> Properties | Pigeonne </title>
       </Helmet>
+      <ThemeProvider theme={darkTheme}>
+        <CssBaseline />
+        <Container>
+          <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
+            <Typography variant="h4" gutterBottom>
+              Properties
+            </Typography>
+          </Stack>
 
-      <Container>
-        <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
-          <Typography variant="h4" gutterBottom>
-            User
-          </Typography>
-          <Button variant="contained" startIcon={<Iconify icon="eva:plus-fill" />}>
-            New User
-          </Button>
-        </Stack>
+          <Card>
+            <UserListToolbar numSelected={selected.length} filterName={filterName} onFilterName={handleFilterByName} />
 
-        <Card>
-          <UserListToolbar numSelected={selected.length} filterName={filterName} onFilterName={handleFilterByName} />
+            <Scrollbar>
+              <TableContainer sx={{ minWidth: 800 }}>
+                {USERLIST.length === 0 && (
+                  <>
+                    <Skeleton animation="wave" variant="rectangular" width="100%" height={40} sx={{ mb: 2 }} />
+                    <Skeleton animation="wave" variant="rectangular" width="100%" height={40} sx={{ mb: 2 }} />
+                    <Skeleton animation="wave" variant="rectangular" width="100%" height={100} />
+                  </>
+                )}
 
-          <Scrollbar>
-            <TableContainer sx={{ minWidth: 800 }}>
-              <Table>
-                <UserListHead
-                  order={order}
-                  orderBy={orderBy}
-                  headLabel={TABLE_HEAD}
-                  rowCount={USERLIST.length}
-                  numSelected={selected.length}
-                  onRequestSort={handleRequestSort}
-                  onSelectAllClick={handleSelectAllClick}
-                />
-                <TableBody>
-                  {filteredUsers.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => {
-                    const { id, name, role, status, company, avatarUrl, isVerified } = row;
-                    const selectedUser = selected.indexOf(name) !== -1;
+                <Table>
+                  <UserListHead
+                    order={order}
+                    orderBy={orderBy}
+                    headLabel={TABLE_HEAD}
+                    rowCount={USERLIST.length}
+                    numSelected={selected.length}
+                    onRequestSort={handleRequestSort}
+                    onSelectAllClick={handleSelectAllClick}
+                  />
 
-                    return (
-                      <TableRow hover key={id} tabIndex={-1} role="checkbox" selected={selectedUser}>
-                        <TableCell padding="checkbox">
-                          <Checkbox checked={selectedUser} onChange={(event) => handleClick(event, name)} />
-                        </TableCell>
+                  <TableBody>
+                    {filteredUsers.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => {
+                      const { propName, address, id, propUnit, createdAt } = row;
+                      const selectedUser = selected.indexOf(propName) !== -1;
 
-                        <TableCell component="th" scope="row" padding="none">
-                          <Stack direction="row" alignItems="center" spacing={2}>
-                            <Avatar alt={name} src={avatarUrl} />
-                            <Typography variant="subtitle2" noWrap>
-                              {name}
+                      return (
+                        <TableRow hover key={USERLIST.id} role="checkbox" selected={selectedUser}>
+                          <TableCell padding="checkbox">
+                            <Checkbox checked={selectedUser} onChange={(event) => handleClick(event, propName)} />
+                          </TableCell>
+
+                          <TableCell component="th" scope="row" padding="none">
+                            <Stack direction="row" alignItems="center" spacing={2}>
+                              <Avatar>
+                                <ApartmentIcon />
+                              </Avatar>
+                              <Typography variant="subtitle2" noWrap>
+                                {propName}
+                              </Typography>
+                            </Stack>
+                          </TableCell>
+
+                          <TableCell align="left">{id}</TableCell>
+
+                          <TableCell align="left">{createdAt.seconds}</TableCell>
+
+                          <TableCell align="left">{propUnit}</TableCell>
+
+                          <TableCell align="left">
+                            <Label>{address}</Label>
+                          </TableCell>
+
+                          <TableCell key={id} align="right">
+                            <IconButton size="large" sx={{ color: 'error.main' }} onClick={() => deleteDocument(id)}>
+                              <Iconify icon={'eva:trash-2-outline'} />
+                            </IconButton>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                    {emptyRows > 0 && (
+                      <TableRow style={{ height: 53 * emptyRows }}>
+                        <TableCell colSpan={6} />
+                      </TableRow>
+                    )}
+                  </TableBody>
+
+                  {isNotFound && (
+                    <TableBody>
+                      <TableRow>
+                        <TableCell align="center" colSpan={6} sx={{ py: 3 }}>
+                          <Paper
+                            sx={{
+                              textAlign: 'center',
+                            }}
+                          >
+                            <Typography variant="h6" paragraph>
+                              Not found
                             </Typography>
-                          </Stack>
-                        </TableCell>
 
-                        <TableCell align="left">{company}</TableCell>
-
-                        <TableCell align="left">{role}</TableCell>
-
-                        <TableCell align="left">{isVerified ? 'Yes' : 'No'}</TableCell>
-
-                        <TableCell align="left">
-                          <Label color={(status === 'banned' && 'error') || 'success'}>{sentenceCase(status)}</Label>
-                        </TableCell>
-
-                        <TableCell align="right">
-                          <IconButton size="large" color="inherit" onClick={handleOpenMenu}>
-                            <Iconify icon={'eva:more-vertical-fill'} />
-                          </IconButton>
+                            <Typography variant="body2">
+                              No results found for &nbsp;
+                              <strong>&quot;{filterName}&quot;</strong>.
+                              <br /> Try checking for typos or using complete words.
+                            </Typography>
+                          </Paper>
                         </TableCell>
                       </TableRow>
-                    );
-                  })}
-                  {emptyRows > 0 && (
-                    <TableRow style={{ height: 53 * emptyRows }}>
-                      <TableCell colSpan={6} />
-                    </TableRow>
+                    </TableBody>
                   )}
-                </TableBody>
+                </Table>
+              </TableContainer>
+            </Scrollbar>
 
-                {isNotFound && (
-                  <TableBody>
-                    <TableRow>
-                      <TableCell align="center" colSpan={6} sx={{ py: 3 }}>
-                        <Paper
-                          sx={{
-                            textAlign: 'center',
-                          }}
-                        >
-                          <Typography variant="h6" paragraph>
-                            Not found
-                          </Typography>
-
-                          <Typography variant="body2">
-                            No results found for &nbsp;
-                            <strong>&quot;{filterName}&quot;</strong>.
-                            <br /> Try checking for typos or using complete words.
-                          </Typography>
-                        </Paper>
-                      </TableCell>
-                    </TableRow>
-                  </TableBody>
-                )}
-              </Table>
-            </TableContainer>
-          </Scrollbar>
-
-          <TablePagination
-            rowsPerPageOptions={[5, 10, 25]}
-            component="div"
-            count={USERLIST.length}
-            rowsPerPage={rowsPerPage}
-            page={page}
-            onPageChange={handleChangePage}
-            onRowsPerPageChange={handleChangeRowsPerPage}
-          />
-        </Card>
-      </Container>
+            <TablePagination
+              rowsPerPageOptions={[5, 10, 25]}
+              component="div"
+              count={USERLIST.length}
+              rowsPerPage={rowsPerPage}
+              page={page}
+              onPageChange={handleChangePage}
+              onRowsPerPageChange={handleChangeRowsPerPage}
+            />
+          </Card>
+        </Container>
+      </ThemeProvider>
 
       <Popover
+        key={USERLIST.id}
         open={Boolean(open)}
         anchorEl={open}
         onClose={handleCloseMenu}
@@ -284,8 +320,9 @@ export default function UserPage() {
           Edit
         </MenuItem>
 
-        <MenuItem sx={{ color: 'error.main' }}>
+        <MenuItem sx={{ color: 'error.main' }} key={USERLIST.id} onClick={() => deleteDocument(USERLIST.id)}>
           <Iconify icon={'eva:trash-2-outline'} sx={{ mr: 2 }} />
+          {console.log()}
           Delete
         </MenuItem>
       </Popover>

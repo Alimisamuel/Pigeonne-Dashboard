@@ -66,12 +66,12 @@ signup(email, password, displayName)
       </Stack>
 {!isPending && 
       <LoadingButton fullWidth size="large" type="submit" onClick={handleClick} variant="contained">
-        Sign in
+        Sign up
       </LoadingButton>}
 {isPending && 
       <LoadingButton   loading
       loadingPosition="start"      startIcon={<SaveIcon />} fullWidth size="large" type="submit" variant="contained" disabled >
-        Signing in
+        Signing up
       </LoadingButton>}
     </>
   );

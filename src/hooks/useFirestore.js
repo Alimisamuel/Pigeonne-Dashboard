@@ -13,6 +13,8 @@ const firestoreReducer = (state, action) =>{
         return{  isPending:true, document:false, success:false, error:null }
         case 'ADDED_DOCUMENT':
             return{  isPending:false, document: action.payload, success:true, error:null}
+        case 'DELETED_DOCUMENT':
+            return {isPending: false, document: action.payload, success:true, error:null}
             case 'ERROR':
                 return{isPending:false, document:null, success:false, error:action.payload}
          default:
@@ -20,7 +22,7 @@ const firestoreReducer = (state, action) =>{
     }
 }
 export const useFirestore = (collection)=>{
-    const [response, distpatch] = useReducer(firestoreReducer, initialState)
+    const [response, dispatch] = useReducer(firestoreReducer, initialState)
     const [isCancelled, setIsCancelled] = useState(false)
     
     // collection ref
@@ -29,13 +31,13 @@ export const useFirestore = (collection)=>{
 
     const dispatchIfNotCan=  (action)=>{
 if(!isCancelled){
-    distpatch(action)
+    dispatch(action)
 }
     }
     // add
 
     const addDocument = async (doc) =>{
-        distpatch({type:'IS_PENDING'})
+        dispatch({type:'IS_PENDING'})
 try{
     const createdAt = timestamp.fromDate(new Date())
 const addedDoc = await ref.add({...doc, createdAt})
@@ -47,8 +49,15 @@ dispatchIfNotCan({type: 'ADDED_DOCUMENT', payload:addedDoc})
     }
 
     // deleteDocument
-    const deleteDocument = (id) =>{
+    const deleteDocument = async (id) =>{
+       dispatch({type: 'IS_PENDING'})
 
+try{
+const deletedDocument = await ref.doc(id).delete()
+dispatchIfNotCan({type: 'DELETED_DOCUMENT', payload: deletedDocument})
+}catch(err){
+    dispatchIfNotCan({type:'ERROR', payload: 'could not delete'})
+}
     }
 
     useEffect(()=> {

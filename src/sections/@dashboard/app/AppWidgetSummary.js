@@ -73,7 +73,7 @@ export default function AppWidgetSummary({ title, total, icon, color = 'primary'
 
 
         
-        {(total) === 0 ?
+      {(total) === null ?
          <CircularProgress color="inherit" />
          :
          <Typography variant="h3">
@@ -81,9 +81,12 @@ export default function AppWidgetSummary({ title, total, icon, color = 'primary'
         </Typography>
         }
 
+
+
       <Typography variant="subtitle2" sx={{ opacity: 0.72 }}>
         {title}
       </Typography>
+      {(total) === 0 &&  <Typography variant='h6'>No Apartment</Typography>}
     </Card>
     </ThemeProvider>
   );
