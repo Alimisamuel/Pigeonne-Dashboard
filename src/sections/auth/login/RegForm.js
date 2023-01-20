@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 // @mui
-import { Link, Stack, IconButton, InputAdornment, TextField, Checkbox, Alert } from '@mui/material';
+import { Link, Stack, IconButton, InputAdornment, TextField, Checkbox, Alert, Typography } from '@mui/material';
 import { LoadingButton } from '@mui/lab';
 import SaveIcon from '@mui/icons-material/Save';
+import { Box } from '@mui/system';
 // components
 import { useSignUp } from '../../../hooks/useSignUp';
 import Iconify from '../../../components/iconify';
@@ -35,7 +36,7 @@ signup(email, password, displayName)
       <Stack spacing={3}>
         {error && <Alert severity='error'>{error}</Alert>}
 
-        <TextField name="text" label="Company Name" onChange={(e)=>setDisplayName(e.target.value)}  value={displayName}/>
+        <TextField name="text" label="Company Name" type="text" onChange={(e)=>setDisplayName(e.target.value)}  value={displayName}/>
         <TextField name="email" label="Email address" 
         value={email} onChange={(e)=>setEmail(e.target.value)}/>
       
@@ -59,10 +60,9 @@ signup(email, password, displayName)
       </Stack>
 
       <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ my: 2 }}>
-        <Checkbox name="remember" label="Remember me" />
-        <Link variant="subtitle2" underline="hover">
-          Forgot password?
-        </Link>
+        <Box sx={{display:'flex', alignItems:'center'}}>
+        <Checkbox name="remember" label="Remember me" /> <Typography variant="subtitle2">Remember me</Typography></Box>
+      
       </Stack>
 {!isPending && 
       <LoadingButton fullWidth size="large" type="submit" onClick={handleClick} variant="contained">

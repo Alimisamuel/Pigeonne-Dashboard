@@ -55,7 +55,7 @@ const TABLE_HEAD = [
   { id: 'name', label: 'Property Name', alignRight: false },
   { id: 'company', label: 'ID', alignRight: false },
   { id: 'role', label: 'Date', alignRight: false },
-  { id: 'isVerified', label: 'Unit Number', alignRight: false },
+  { id: 'isVerified', label: 'Units', alignRight: false },
   { id: 'status', label: 'Address', alignRight: false },
   { id: '' },
 ];
