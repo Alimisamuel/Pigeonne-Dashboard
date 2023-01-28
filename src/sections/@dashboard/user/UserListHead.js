@@ -50,7 +50,7 @@ export default function UserListHead({
           />
         </TableCell>
         {headLabel.map((headCell) => (
-          <TableCell
+          <TableCell sx={{fontWeight:'bolder'}}
             key={headCell.id}
             align={headCell.alignRight ? 'right' : 'left'}
             sortDirection={orderBy === headCell.id ? order : false}

@@ -1,19 +1,12 @@
-import { useEffect, useState } from 'react';
+
 import { Helmet } from 'react-helmet-async';
 // @mui
 import { Link, Navigate } from 'react-router-dom';
-import { Grid, Container, Typography, Avatar } from '@mui/material';
-import LocalShippingIcon from '@mui/icons-material/LocalShipping';
-import WhereToVoteIcon from '@mui/icons-material/WhereToVote';
-// import { projectFirestore } from '../firebase/Config';
-// components
-// sections
+import { Grid, Container, Typography } from '@mui/material';
 
-// import { useUserAuth } from '../context/AuthContexts';
-import { Box } from '@mui/system';
 import { AppWidgetSummary } from '../sections/@dashboard/app';
 import { useCollection } from '../hooks/useCollection';
-import { useAuthContext } from '../hooks/useAuthContext';
+
 
 // ----------------------------------------------------------------------
 
@@ -36,7 +29,7 @@ export default function DashboardAppPage() {
       <Container maxWidth="xl">
    <Typography variant="h4" sx={{ mb: 5 }}>
      Hi, Welcome back
-      {/* {user && user.email} */}
+     
    </Typography>
 
 
@@ -56,13 +49,7 @@ export default function DashboardAppPage() {
      <Grid item xs={12} sm={6} md={6} sx={{cursor:'pointer'}}>
        <AppWidgetSummary title="Deliveries" total={1352831} color="info" icon={'carbon:delivery'} />
      </Grid>
-{/* 
-      <Grid item xs={12} sm={6} md={3}>
-       <AppWidgetSummary title="Item Orders" total={1723315} color="warning" icon={'ant-design:windows-filled'} />
-     </Grid> 
-     <Grid item xs={12} sm={6} md={3}>
-       <AppWidgetSummary title="Bug Reports" total={234} color="error" icon={'ant-design:bug-filled'} />
-     </Grid>  */}
+
 
    </Grid>
  </Container>

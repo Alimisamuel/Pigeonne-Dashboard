@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+
 // @mui
-import { Link, Stack, IconButton, InputAdornment, TextField, Checkbox, Alert, Typography } from '@mui/material';
+import {  Stack, IconButton, InputAdornment, TextField, Checkbox, Alert, Typography } from '@mui/material';
 import { LoadingButton } from '@mui/lab';
 import SaveIcon from '@mui/icons-material/Save';
 import { Box } from '@mui/system';
@@ -16,7 +16,7 @@ export default function RegForm() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [displayName, setDisplayName] = useState('')
-  const navigate = useNavigate();
+
   const {signup , isPending, error} = useSignUp()
 
 
