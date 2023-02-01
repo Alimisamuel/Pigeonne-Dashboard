@@ -1,6 +1,5 @@
 import { Helmet } from 'react-helmet-async';
 import { filter } from 'lodash';
-import ApartmentIcon from '@mui/icons-material/Apartment';
 import Modal from '@mui/material/Modal';
 import { useState } from 'react';
 // @mui
@@ -9,12 +8,10 @@ import {
   Table,
   Stack,
   Paper,
-  Avatar,
   Box,
-  Popover,
+  Button,
   Checkbox,
   TableRow,
-  MenuItem,
   TableBody,
   TableCell,
   Container,
@@ -27,21 +24,24 @@ import {
   Tooltip,
   TextField,
   Divider,
+  Grid,
+  Popover,
 } from '@mui/material';
+
+import SaveIcon from '@mui/icons-material/Save';
+import DeleteIcon from '@mui/icons-material/Delete';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import { LoadingButton } from '@mui/lab';
 import HighlightOffIcon from '@mui/icons-material/HighlightOff';
 // components
-import Label from '../components/label';
-import Iconify from '../components/iconify';
 import Scrollbar from '../components/scrollbar';
 // sections
 import { UserListHead, UserListToolbar } from '../sections/@dashboard/user';
-// mock
-// import USERLIST from '../_mock/user';
+// Firetore Hook
+import { projectFirestore } from '../firebase/Config';
 import { useCollection } from '../hooks/useCollection';
-
 import { useFirestore } from '../hooks/useFirestore';
+
 
 // ----------------------------------------------------------------------
 
@@ -55,13 +55,20 @@ const darkTheme = createTheme({
   },
 });
 
+// ----------------------------------------------------------------------
+
+// ----------------------------------------------------------------------
+
 const style = {
   position: 'absolute',
   top: '50%',
   left: '50%',
   transform: 'translate(-50%, -50%)',
-  width:{
-    lg:600
+  width: {
+    lg: 600,
+    md:800,
+    xs:370,
+    sm:550
   },
   bgcolor: 'background.paper',
 
@@ -76,6 +83,10 @@ const TABLE_HEAD = [
 
   { id: '' },
 ];
+
+// ----------------------------------------------------------------------
+
+// ----------------------------------------------------------------------
 
 // ----------------------------------------------------------------------
 
@@ -108,6 +119,10 @@ function applySortFilter(array, comparator, query) {
   return stabilizedThis.map((el) => el[0]);
 }
 
+// ----------------------------------------------------------------------
+
+// ----------------------------------------------------------------------
+
 export default function UserPage() {
   // const [open, setOpen] = useState(null);
 
@@ -117,29 +132,112 @@ export default function UserPage() {
 
   const [selected, setSelected] = useState([]);
 
+  const [newUnit, setNewUnit] = useState([]);
+
+  const [createdAt, setCreatedAt] = useState('');
+
   const [orderBy, setOrderBy] = useState('name');
 
   const [filterName, setFilterName] = useState('');
-  const [open, setOpen] = useState(false);
-  const handleOpen = () => setOpen(true);
-  const handleClose = () => setOpen(false);
 
-  const { deleteDocument } = useFirestore('properties');
-  const user = JSON.parse(window.localStorage.getItem('user'));
-  const { document } = useCollection('properties', ['uid', '==', user.uid]);
-  const USERLIST = document ?? [];
+  const [open, setOpen] = useState(false);
+
+  const handleClose = () => setOpen(false);
 
   const [rowsPerPage, setRowsPerPage] = useState(5);
 
-  console.log(user);
+  const { deleteDocument } = useFirestore('Properties');
 
-  // const handleOpenMenu = (event) => {
-  //   setOpen(event.currentTarget);
-  // };
+  const user = JSON.parse(window.localStorage.getItem('user'));
 
-  // const handleCloseMenu = () => {
-  //   setOpen(null);
-  // };
+  const { document } = useCollection('Properties', ['uid', '==', user.uid]);
+
+  const { activeUnit } = useCollection('Users');
+
+  const [loading, setLoading] = useState(false)
+
+  const USERLIST = document ?? [];
+
+  const [anchorEl, setAnchorEl] = useState(null);
+
+  const handleClickPop = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleClosePop = () => {
+    setAnchorEl(null);
+  };
+  const openPop = Boolean(anchorEl);
+  const id = openPop ? 'simple-popover' : undefined;
+
+  // ----------------------------------------------------------------------Edit Document Field
+  const [propName, setPropName] = useState('');
+  const [address, setaddress] = useState('');
+  const [propID, setPropID] = useState('');
+  const [propUnit, setUnit] = useState('');
+  
+
+  // ----------------------------------------------------------------------
+
+
+
+  const handleSaveChanges = (id) =>{
+    setLoading(true)
+    const Ref = projectFirestore.collection("Properties").doc(id);
+
+    // Set the "capital" field of the city 'DC'
+    return Ref.update({
+        propName,
+        address,
+        propUnit
+
+    })
+    .then(() => {
+      setLoading(false)
+      window.location.reload(true)
+        console.log("Document successfully updated!");
+    })
+    .catch((error) => {
+        // The document probably doesn't exist.
+        console.error("Error updating document: ", error);
+    });
+    
+  }
+
+
+  // ----------------------------------------------------------------------
+
+  // ---------------------------------------------------------------------- Get Single Property Data & Modal State
+
+  const handleOpen = (id) => {
+    setOpen(true);
+    const docRef = projectFirestore.collection('Properties').doc(id);
+    docRef
+      .get()
+      .then((doc) => {
+        if (doc.exists) {
+          // console.log('Document data:', doc.data().propName);
+          setPropName(doc.data().propName);
+          setaddress(doc.data().address);
+          setPropID(id);
+          setUnit(doc.data().propUnit);
+          
+
+          const creeatedAtData = new Date(doc.data().createdAt.seconds * 1000).toLocaleDateString('en-US');
+          setCreatedAt(creeatedAtData);
+        } else {
+          // doc.data() will be undefined in this case
+          console.log('No such document!');
+        }
+      })
+      .catch((error) => {
+        console.log('Error getting document:', error);
+      });
+  };
+
+  // ----------------------------------------------------------------------
+
+  // ----------------------------------------------------------------------
 
   const handleRequestSort = (event, property) => {
     const isAsc = orderBy === property && order === 'asc';
@@ -185,15 +283,15 @@ export default function UserPage() {
     setFilterName(event.target.value);
   };
 
+  // ----------------------------------------------------------------------
+
+  // ----------------------------------------------------------------------
+
   const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - USERLIST.length) : 0;
 
   const filteredUsers = applySortFilter(USERLIST, getComparator(order, orderBy), filterName);
 
   const isNotFound = !filteredUsers.length && !!filterName;
-  const [propName, setPropName] = useState('Next Dev Inc')
-  const [propAddress, setPropAddress] = useState('Yaba college of education, lagos, Nigeria')
-  const [propID, setPropID] = useState('9IXGPEQffdQ7JAQ76azJPWP1ZTX2')
-  const [propUnit, setUnit] = useState('UF578')
 
   return (
     <>
@@ -214,12 +312,14 @@ export default function UserPage() {
 
             <Scrollbar>
               <TableContainer sx={{ minWidth: 800 }}>
+                {/* <<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>> */}
                 {USERLIST.length === 0 && (
                   <>
                     <Skeleton animation="wave" variant="rectangular" width="100%" height={40} sx={{ mb: 2 }} />
                     <Skeleton animation="wave" variant="rectangular" width="100%" height={40} sx={{ mb: 2 }} />
                     <Skeleton animation="wave" variant="rectangular" width="100%" height={100} />
                   </>
+                  //  >>>>>>>>>>>>>>>>>>>>>>>>>><<<<<<<<<<<<<<<<<<<<
                 )}
 
                 <Table>
@@ -234,53 +334,57 @@ export default function UserPage() {
                   />
 
                   <TableBody>
-                  <TableRow padding="checkbox" >
-                  <TableCell component="th" scope="row" padding="none" />
-                
-                          <TableCell align='left'sx={{fontWeight:'bolder'}}   >
-                            Total
-                          </TableCell>
-                          <TableCell align='left'sx={{fontWeight:'bolder', textAlign:'center'}}  >
-                            1,054
-                          </TableCell>
-                          <TableCell align='left'sx={{fontWeight:'bolder', textAlign:'center'}}  >
-                            14.4
-                          </TableCell>
-                          <TableCell align='left'sx={{fontWeight:'bolder', textAlign:'center'}}  >
-                            20
-                          </TableCell>
-                         </TableRow>
+                    <TableRow padding="checkbox">
+                      <TableCell component="th" scope="row" padding="none" />
+
+                      <TableCell align="left" sx={{ fontWeight: 'bolder' }}>
+                        Total
+                      </TableCell>
+                      <TableCell align="left" sx={{ fontWeight: 'bolder', textAlign: 'center' }}>
+                        1,054
+                      </TableCell>
+                      <TableCell align="left" sx={{ fontWeight: 'bolder', textAlign: 'center' }}>
+                        14.4
+                      </TableCell>
+                      <TableCell align="left" sx={{ fontWeight: 'bolder', textAlign: 'center' }}>
+                        20
+                      </TableCell>
+                    </TableRow>
                     {filteredUsers.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => {
-                      const { propName } = row;
+                      const { propName, id } = row;
                       const selectedUser = selected.indexOf(propName) !== -1;
 
                       return (
-                        <>                       
-                      
-                        <TableRow hover key={USERLIST.id} role="checkbox" selected={selectedUser}>
-                          <TableCell padding="checkbox">
-                            <Checkbox checked={selectedUser} onChange={(event) => handleClick(event, propName)} />
-                          </TableCell>
+                        <>
+                          {/* <<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>> */}
+                          <TableRow hover key={USERLIST.id} role="checkbox" selected={selectedUser}>
+                            <TableCell padding="checkbox">
+                              <Checkbox checked={selectedUser} onChange={(event) => handleClick(event, propName)} />
+                            </TableCell>
 
-                          <TableCell component="th" scope="row" padding="none">
-                            <Stack direction="row" alignItems="center" spacing={2}>
-                          <Tooltip title="Click to view and edit more info">
+                            <TableCell component="th" scope="row" padding="none">
+                              <Stack direction="row" alignItems="center" spacing={2}>
+                                <Tooltip title="Click to view and edit more info">
+                                  <Typography
+                                    variant="subtitle2"
+                                    noWrap
+                                    sx={{ cursor: 'pointer' }}
+                                    key={id}
+                                    onClick={() => handleOpen(id)}
+                                  >
+                                    {propName}
+                                  </Typography>
+                                </Tooltip>
+                              </Stack>
+                            </TableCell>
 
-                              <Typography variant="subtitle2" noWrap sx={{ cursor: 'pointer' }} onClick={handleOpen}>
-                                {propName}
-                              </Typography>
-                          </Tooltip>
-                            </Stack>
-                          </TableCell>
+                            <TableCell align="left">A</TableCell>
 
-                          <TableCell align="left"> </TableCell>
+                            <TableCell align="left"> </TableCell>
 
-                          <TableCell align="left"> </TableCell>
-
-                          <TableCell align="left"> </TableCell>
-                   
-                        </TableRow>
-                      </>
+                            <TableCell align="left"> </TableCell>
+                          </TableRow>
+                        </>
                       );
                     })}
                     {emptyRows > 0 && (
@@ -314,6 +418,8 @@ export default function UserPage() {
                     </TableBody>
                   )}
                 </Table>
+
+                {/* <<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>> */}
               </TableContainer>
             </Scrollbar>
 
@@ -328,75 +434,130 @@ export default function UserPage() {
             />
           </Card>
         </Container>
- 
+
+        {/* >>>>>>>>>>>>>>>>>>>>>>>>>>><<<<<<<<<<<<<<<<<<<<<<<<<<< */}
+        <Modal
+          open={open}
+          // onClose={handleClose}
+          aria-labelledby="modal-modal-title"
+          aria-describedby="modal-modal-description"
+        >
+          <Box sx={style}>
+
+            <Box mb={2} sx={{ display: 'flex', justifyContent: 'space-between' }}>
+              <Typography variant="h6" sx={{ fontWeight: 'bolder' }}>
+                Edit and view property informations
+              </Typography>
+              <IconButton onClick={handleClose}>
+                <HighlightOffIcon />
+              </IconButton>
+            </Box>
+
+            <Divider sx={{ mb: 5 }} />
+
+            {/* <<<<<<<<<<<>>>>>>>>>>>>>>>> */}
+            <TextField
+              variant="standard"
+              type="text"
+              value={propName}
+              fullWidth
+              onChange={(e) => setPropName(e.target.value)}
+              size="small"
+              margin="normal"
+              label="Property Name"
+            />
+
+            <TextField
+              variant="standard"
+              type="text"
+              value={address}
+              fullWidth
+              margin="normal"
+              onChange={(e) => setaddress(e.target.value)}
+              size="small"
+              label="Property Address"
+            />
+
+            <TextField
+              variant="standard"
+              type="text"
+              value={propUnit}
+              fullWidth
+              margin="normal"
+              onChange={(e) => setUnit(e.target.value)}
+              size="small"
+              label="Total No. of  Units"
+            />
+
+
+            {/* <<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>> */}
 
 
 
+            <Box sx={{ mt: 4, border: '1px solid #000', borderRadius: '5px', p: 3 }}>
+              <Grid container>
+                <Grid Item lg={6}>
+                  <Typography variant="h6" sx={{ fontWeight: 'bolder' }}>
+                  Document ID:
+                  </Typography>
+                  <Typography variant="body1">{propID}</Typography>
+                </Grid>
+                <Grid Item lg={6}>
+                  <Typography variant="h6" sx={{ fontWeight: 'bolder' }}>
+                    Date Created:
+                  </Typography>
+                  <Typography variant="body1">{createdAt}</Typography>
+                </Grid>
+              </Grid>
+            </Box>
+{/* <<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>> */}
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 5 }}>
+              <LoadingButton variant="outlined" color="error" onClick={handleClickPop}>
+                <DeleteIcon sx={{ fontSize: '15px', mr: 1 }} />
+                Delete{' '}
+              </LoadingButton>
 
 
-      <Modal
-        open={open}
-        // onClose={handleClose}
-        aria-labelledby="modal-modal-title"
-        aria-describedby="modal-modal-description"
-      >
-        <Box sx={style} >
-          <Box mb={2} sx={{display:'flex', justifyContent:'space-between'}}>
-            <Typography variant="h6" sx={{fontWeight:'bolder'}}>Edit and view property informations</Typography>
-         <IconButton onClick={handleClose}>
-<HighlightOffIcon/>
-         </IconButton>
+              {!loading && 
+      <LoadingButton  size="small" type="submit" key={propID} onClick={()=>handleSaveChanges(propID)} variant="contained">
+        Save Changes
+      </LoadingButton>}
+{loading && 
+      <LoadingButton   loading
+      loadingPosition="start"      startIcon={<SaveIcon />} size="small" type="submit" variant="contained" disabled >
+        Updating Document
+      </LoadingButton>}
+            </Box>
           </Box>
-          <Divider sx={{mb:5}}/>
-         <TextField variant='outlined' 
-         type="text"
-         value={propName}
-         fullWidth
-         onChange={(e)=>setPropName(e.target.value)}
-         size='small'
-         margin='normal'
-         label="Property Name"/>
-         <TextField variant='outlined' 
-         type="text"
-         value={propAddress}
-         fullWidth
-         margin='normal'
-         onChange={(e)=>setPropAddress(e.target.value)}
-         size='small'
-         label="Property Address"/>
-         <TextField variant='outlined' 
-         disabled
-         type="text"
-         value={propID}
-         fullWidth
-         margin='normal'
-                      
-         size='small'
-         label="Property ID"/>
-         <TextField variant='outlined' 
-         disabled
-         type="text"
-         value={propUnit}
-         fullWidth
-         margin='normal'
-                      
-         size='small'
-         label="No. of unit"/>
-         <TextField variant='outlined' 
-         disabled
-         type="text"
-         value={propUnit}
-         fullWidth
-         margin='normal'
-                      
-         size='small'
-         label="Date created"/>
+        </Modal>
 
-         <Box sx={{textAlign:'right', mt:5}}>
-          <LoadingButton variant='contained'>Save changes</LoadingButton>
-         </Box>
+
+        <Popover
+        id={id}
+        open={openPop}
+        anchorEl={anchorEl}
+        onClose={handleClosePop}
+        anchorOrigin={{
+          vertical: 'top',
+          horizontal: 'left',
+        }}
+        transformOrigin={{
+          vertical: 'bottom',
+          horizontal: 'left',
+        }}
+      >
+        <Typography sx={{ p: 2 }}>Are you sure </Typography>
+        <Box sx={{m:2}}>
+
+        <Button variant="contained" size='small'  color='error' sx={{mr:2}} onClick={()=>{
+          deleteDocument(propID)
+        handleClosePop()
+      handleClose()}
+          }
+            key={propID}>Yes</Button>
+        <Button variant="contained" size='small' onClick={handleClosePop}>No</Button>
         </Box>
-      </Modal>
+      </Popover>
       </ThemeProvider>
     </>
   );

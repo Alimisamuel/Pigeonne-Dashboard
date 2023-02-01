@@ -37,6 +37,48 @@ const StyledSearch = styled(OutlinedInput)(({ theme }) => ({
   },
 }));
 
+// .........Date Format >>>>>>>>>>>>>>>>>
+
+const months = [
+  'January',
+  'February',
+  'March',
+  'April',
+  'May',
+  'June',
+  'July',
+  'August',
+  'September',
+  'October',
+  'November',
+  'December',
+];
+const date = new Date();
+const year = date.getFullYear();
+const day = date.getDate();
+const month = months[date.getMonth()];
+// const lMonth = months[date.getMonth() - 1]
+
+// const now = new Date();
+const today = new Date(date.getFullYear(), date.getMonth(), date.getDate() ).toDateString();
+const yesterdays = new Date(date.getFullYear(), date.getMonth(), date.getDate() - 1).toDateString();
+const oneWeek = new Date(date.getFullYear(), date.getMonth(), date.getDate() - 7).toDateString();
+const twoWeek = new Date(date.getFullYear(), date.getMonth(), date.getDate() - 14).toDateString();
+const threeMonths = new Date(date.getFullYear(), date.getMonth(), date.getDate() - 90).getMonth()
+const threeYear = new Date(date.getFullYear(), date.getMonth(), date.getDate() - 90).getFullYear()
+const lMonth = new Date(date.getFullYear(), date.getMonth(), date.getDate() - 30).toDateString()
+const lYear = new Date(date.getFullYear(), date.getMonth(), date.getDate() - 30).getFullYear()
+
+
+
+console.log(threeMonths)
+// >>>>>>>>>>>>><<<<<<<<<<<<<<<<<<>>>>>>>>>>><<<<<<<<<<<
+const thisWeek = `${today} - ${oneWeek}`
+const lastWeek = `${oneWeek} - ${twoWeek}`
+const thisMonth = ` ${today} - ${lMonth}`
+const lastMonth =`${months[lMonth]} ${lYear}`
+const threeMonth = `${month}, ${year} - ${months[threeMonths]}, ${threeYear}`
+
 // ----------------------------------------------------------------------
 
 UserListToolbar.propTypes = {
@@ -105,64 +147,66 @@ export default function UserListToolbar({ numSelected, filterName, onFilterName 
             onChange={handleChange}
           >
             <MenuItem value={10}>
-              <Box sx={{  width: '100%', pl:2 }}>
-                <Typography variant="caption" sx={{textAlign:'center'}}>Jan 2022 - Dec. 2022</Typography>
+              <Box sx={{ width: '100%', pl: 2 }}>
+                <Typography variant="caption" sx={{ textAlign: 'center' }}>
+                  {today}
+                </Typography>
                 <br />
                 Today
               </Box>
             </MenuItem>
-            <MenuItem value={20}>
-              <Box sx={{ width: '100%', pl:2 }}>
+            {/* <MenuItem value={20}>
+              <Box sx={{ width: '100%', pl: 2 }}>
                 <Typography variant="caption" sx={{ textAlign: 'center' }}>
-                  Jan 25, 2022 - Dec 21, 2022
+                  {yesterdays}
                 </Typography>
                 <br />
                 Yesterday
               </Box>
-            </MenuItem>
+            </MenuItem> */}
             <MenuItem value={30}>
-            <Box sx={{ width: '100%', pl:2 }}>
+              <Box sx={{ width: '100%', pl: 2 }}>
                 <Typography variant="caption" sx={{ textAlign: 'center' }}>
-                  Jan 25, 2022 - Dec 21, 2022
+                  {thisWeek}
                 </Typography>
                 <br />
-          This Week
+               Last 7 days
               </Box>
             </MenuItem>
             <MenuItem value={40}>
-            <Box sx={{ width: '100%', pl:2 }}>
+              <Box sx={{ width: '100%', pl: 2 }}>
                 <Typography variant="caption" sx={{ textAlign: 'center' }}>
-                  Jan 25, 2022 - Dec 21, 2022
+             {lastWeek}
                 </Typography>
                 <br />
-               Last Week
+                Last 14 days
               </Box>
             </MenuItem>
             <MenuItem value={50}>
-            <Box sx={{ width: '100%', pl:2 }}>
+              <Box sx={{ width: '100%', pl: 2 }}>
                 <Typography variant="caption" sx={{ textAlign: 'center' }}>
-                  Jan 25, 2022 - Dec 21, 2022
+              {thisMonth}
                 </Typography>
                 <br />
-                This Month
+                Last 30 days
               </Box>
             </MenuItem>
-            <MenuItem value={60}>
-            <Box sx={{ width: '100%', pl:2 }}>
+            {/* <MenuItem value={60}>
+              <Box sx={{ width: '100%', pl: 2 }}>
                 <Typography variant="caption" sx={{ textAlign: 'center' }}>
-                  Jan 25, 2022 - Dec 21, 2022
+                {lastMonth}
                 </Typography>
                 <br />
-                Last Week
+               
               </Box>
-            </MenuItem>
+            </MenuItem> */}
             <MenuItem value={70}>
-            <Box sx={{ width: '100%', pl:2 }}>
+              <Box sx={{ width: '100%', pl: 2 }}>
                 <Typography variant="caption" sx={{ textAlign: 'center' }}>
-                  Jan 25, 2022 - Dec 21, 2022
+         {threeMonth}
                 </Typography>
                 <br />
-                Last 3 Months
+                Last 90 days
               </Box>
             </MenuItem>
           </Select>

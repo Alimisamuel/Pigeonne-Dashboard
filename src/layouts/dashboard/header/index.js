@@ -110,8 +110,9 @@ export default function Header({ onOpenNav }) {
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
   const loaded = useRef(false);
-  const { addDocument, response } = useFirestore('properties');
+  const { addDocument, response } = useFirestore('Properties');
   const [propUnit, setPropUnit] = useState('');
+  const [city, setCity] = useState()
   const [propName, setPropName] = useState('');
   const { user } = useAuthContext();
 
@@ -171,10 +172,14 @@ export default function Header({ onOpenNav }) {
     };
   }, [value, inputValue, fetch]);
 
+
+
+// >>>>>>>>>>>>>>>>>>>>>>>Handle Submit Button<<<<<<<<<<<<<<<<<<<<<<<
+
   const handleCreateProperty = (e) => {
     e.preventDefault();
     const address = value.description;
-    addDocument({ uid: user.uid, propName, address, propUnit });
+    addDocument({ uid: user.uid, propName, address, propUnit, city });
   };
 
   useEffect(() => {
@@ -182,6 +187,7 @@ export default function Header({ onOpenNav }) {
       setPropName('');
       setValue('');
       setPropUnit('');
+      setCity("")
 
       setTimeout(() => {
         response.success = false;
@@ -189,8 +195,8 @@ export default function Header({ onOpenNav }) {
     }
   }, [response.success]);
 
-  // const NewSammy = value.terms.splice(-1)
-  // console.log("Meeee",NewSammy)
+  // const NewSammy = value.description ?? []
+
 
   return (
     <ThemeProvider theme={darkTheme}>
@@ -277,9 +283,12 @@ export default function Header({ onOpenNav }) {
               onChange={(event, newValue) => {
                 setOptions(newValue ? [newValue, ...options] : options);
                 setValue(newValue);
+    
+                setCity(newValue.description.split(",").slice(-2) )
               }}
               onInputChange={(event, newInputValue) => {
                 setInputValue(newInputValue);
+      
               }}
               renderInput={(params) => <TextField {...params} label="Add a location" fullWidth />}
               renderOption={(props, option) => {
@@ -315,7 +324,7 @@ export default function Header({ onOpenNav }) {
             <TextField
               required
               helperText="Total number of  units"
-              type="text"
+              type="number"
               label="No. of Unit"
               value={propUnit}
               onChange={(e) => setPropUnit(e.target.value)}

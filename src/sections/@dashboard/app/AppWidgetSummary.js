@@ -42,7 +42,7 @@ AppWidgetSummary.propTypes = {
 };
 
 export default function AppWidgetSummary({ title, total, icon, color = 'primary', sx, ...other }) {
-  const {document} = useCollection('properties')
+  const {document} = useCollection('Properties')
   console.log(document)
   return (
     <ThemeProvider theme={darkTheme}>

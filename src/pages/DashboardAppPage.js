@@ -14,8 +14,8 @@ export default function DashboardAppPage() {
 
   const user = JSON.parse(window.localStorage.getItem('user'));
 
-  console.log(user.uid, "SAN")
-  const { document } = useCollection('properties',
+  // console.log(user.uid, "SAN")
+  const { document } = useCollection('Properties',
   ["uid", "==", user.uid],
   ["createdAt", "desc"])
 
