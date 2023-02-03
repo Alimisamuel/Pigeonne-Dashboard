@@ -4,10 +4,10 @@ import { projectFirestore , timestamp} from "../firebase/Config";
 
 
 
-export const useCollection = (collection, _query, _orderBy) =>{
+export const useUnit = (collection, _query, _orderBy) =>{
 
     // const {user} = useAuthContext() 
-    const [document, setDocument] = useState(null)
+    const [documentUnit, setDocument] = useState(null)
     const [ error, setError] =useState (null)
 
 
@@ -42,6 +42,6 @@ const unsubscribe = ref.onSnapshot((snapshot)=>{
 return () => unsubscribe()
     }, [collection, query])
 
-    return {document, error, orderBy}
+    return {documentUnit, error, orderBy}
 
 }

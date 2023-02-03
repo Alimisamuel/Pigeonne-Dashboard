@@ -1,7 +1,8 @@
 import { Helmet } from 'react-helmet-async';
 import { filter } from 'lodash';
+import _, { pluck } from 'underscore';
 import Modal from '@mui/material/Modal';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 // @mui
 import {
   Card,
@@ -10,7 +11,6 @@ import {
   Paper,
   Box,
   Button,
-  Checkbox,
   TableRow,
   TableBody,
   TableCell,
@@ -21,13 +21,15 @@ import {
   TablePagination,
   CssBaseline,
   Skeleton,
-  Tooltip,
   TextField,
   Divider,
   Grid,
   Popover,
+  TableHead,
 } from '@mui/material';
-
+import Collapse from '@mui/material/Collapse';
+import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
+import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import SaveIcon from '@mui/icons-material/Save';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
@@ -40,8 +42,8 @@ import { UserListHead, UserListToolbar } from '../sections/@dashboard/user';
 // Firetore Hook
 import { projectFirestore } from '../firebase/Config';
 import { useCollection } from '../hooks/useCollection';
+import { useUnit } from '../hooks/useUnit';
 import { useFirestore } from '../hooks/useFirestore';
-
 
 // ----------------------------------------------------------------------
 
@@ -66,23 +68,363 @@ const style = {
   transform: 'translate(-50%, -50%)',
   width: {
     lg: 600,
-    md:800,
-    xs:370,
-    sm:550
+    md: 800,
+    xs: 370,
+    sm: 550,
   },
   bgcolor: 'background.paper',
 
   boxShadow: 24,
   p: 4,
 };
+
 const TABLE_HEAD = [
   { id: 'name', label: 'Properties', alignRight: false },
-  { id: 'company', label: 'Active units', alignRight: false },
-  { id: 'role', label: 'Inactive units', alignRight: false },
+  { id: 'company', label: 'Property ID', alignRight: false },
+  { id: 'role', label: 'Total number of units', alignRight: false },
   { id: 'isVerified', label: 'Successful deliveries', alignRight: false },
-
-  { id: '' },
 ];
+
+function Row(props, docid) {
+  const { row } = props;
+  const [openCol, setOpenCol] = useState(false);
+  const [open, setOpen] = useState(false);
+  const { deleteDocument } = useFirestore('Properties');
+  const [loading, setLoading] = useState(false);
+  const handleClose = () => setOpen(false);
+  const [propName, setPropName] = useState('');
+  const [address, setaddress] = useState('');
+  const [propID, setPropID] = useState('');
+  const [propUnit, setUnit] = useState('');
+  const [anchorEl, setAnchorEl] = useState(null);
+  const [createdAt, setCreatedAt] = useState('');
+  const [documentUnit, setDocumentUnit] = useState(null)
+  // const { documentUnit } = useUnit('Users', ['propertyid', '==', 'j41dzqEBtieRdZyKst7H']);
+
+  // console.log(documentUnit)
+  
+
+  const handleClickPop = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleClosePop = () => {
+    setAnchorEl(null);
+  };
+
+  const openPop = Boolean(anchorEl);
+
+  const id = openPop ? 'simple-popover' : undefined;
+
+  // Get single property for modal
+  // ----------------------------------------------------------------------
+
+  // ----------------------------------------------------------------------
+  const handleOpen = (id) => {
+    setOpen(true);
+    const docRef = projectFirestore.collection('Properties').doc(id);
+    docRef
+      .get()
+      .then((doc) => {
+        if (doc.exists) {
+          // console.log('Document data:', doc.data().propName);
+          setPropName(doc.data().propName);
+          setaddress(doc.data().address);
+          setPropID(id);
+          setUnit(doc.data().propUnit);
+
+          const creeatedAtData = new Date(doc.data().createdAt.seconds * 1000).toLocaleDateString('en-US');
+          setCreatedAt(creeatedAtData);
+        } else {
+          // doc.data() will be undefined in this case
+          console.log('No such document!');
+        }
+      })
+      .catch((error) => {
+        console.log('Error getting document:', error);
+      });
+  };
+
+  // Get single property for Collapse
+  // ----------------------------------------------------------------------
+
+  // ----------------------------------------------------------------------
+
+  const handleCollapse = (id) => {
+    
+    setOpenCol(!openCol);
+    const docRef = projectFirestore.collection('Properties').doc(id);
+    docRef
+      .get()
+      .then((doc) => {
+        if (doc.exists) {
+          // console.log('Document data:', doc.data().propName);
+          setPropName(doc.data().propName);
+          setaddress(doc.data().address);
+          setPropID(id);
+          setUnit(doc.data().propUnit);
+
+          const creeatedAtData = new Date(doc.data().createdAt.seconds * 1000).toLocaleDateString('en-US');
+          setCreatedAt(creeatedAtData);
+        } else {
+          // doc.data() will be undefined in this case
+          console.log('No such document!');
+        }
+      })
+      .catch((error) => {
+        console.log('Error getting document:', error);
+      });
+
+      const ref = projectFirestore.collection('Users').where("propertyid", "==", id)
+      const unsubscribe = ref.onSnapshot((snapshot)=>{
+        const result = [ ]
+        snapshot.docs.forEach(doc =>{
+            result.push({...doc.data( ) , id: doc.id})
+        })
+    
+        // update State
+        setDocumentUnit(result)
+    console.log(documentUnit.length)
+      
+    }, (error)=>{
+        console.log(error)
+       
+    })
+    return ()=>unsubscribe()
+  };
+
+  // Save changes function
+  // ----------------------------------------------------------------------
+
+  // ----------------------------------------------------------------------
+
+  const handleSaveChanges = (id) => {
+    setLoading(true);
+    const Ref = projectFirestore.collection('Properties').doc(id);
+
+    return Ref.update({
+      propName,
+      address,
+      propUnit,
+    })
+      .then(() => {
+        setLoading(false);
+        window.location.reload(true);
+        console.log('Document successfully updated!');
+      })
+      .catch((error) => {
+        // The document probably doesn't exist.
+        console.error('Error updating document: ', error);
+      });
+  };
+
+  const activeUnit = documentUnit ?? []
+  const inactiveUnit = row.propUnit -  activeUnit.length
+  const activePercentage = (activeUnit.length/row.propUnit)* 100
+  const percentFixed =parseFloat(  activePercentage.toFixed(2))
+
+  return (
+    <>
+      <TableRow hover sx={{ '& > *': { borderBottom: 'unset' } }} key={row.id}>
+        <TableCell>
+          <IconButton key={row.id} aria-label="expand row" size="small" onClick={() => handleCollapse(row.id)}>
+            {openCol ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
+          </IconButton>
+        </TableCell>
+        <TableCell
+          sx={{ cursor: 'pointer' }}
+          component="th"
+          scope="row"
+          key={row.id}
+          onClick={() => handleOpen(row.id)}
+        >
+          {/* <Tooltip title="Delete"> */}
+          {row.propName}
+          {/* </Tooltip> */}
+        </TableCell>
+        <TableCell>{row.id}</TableCell>
+        <TableCell>{row.propUnit}</TableCell>
+        <TableCell>Sam</TableCell>
+      </TableRow>
+      <TableRow sx={{ bgcolor: '#B2BEB5' }}>
+        <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={6}>
+          <Collapse in={openCol} timeout="auto" unmountOnExit>
+            <Box sx={{ margin: 1 }}>
+              <Typography variant="h6" sx={{ fontWeight: 'bolder' }} gutterBottom component="div">
+                More Information
+              </Typography>
+              <Table size="small" aria-label="purchases">
+                <TableHead>
+                  <TableRow>
+                    <TableCell sx={{ fontWeight: 'bolder' }}>Property Address</TableCell>
+                    <TableCell sx={{ fontWeight: 'bolder' }}>Active Units</TableCell>
+                    <TableCell sx={{ fontWeight: 'bolder' }}>Inactive Units</TableCell>
+                    <TableCell sx={{ fontWeight: 'bolder' }}>Date Created</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  <TableRow>
+                    <TableCell component="th" scope="row">
+                      {address}
+                    </TableCell>
+                    <TableCell >
+
+                      {activeUnit.length}
+                      <Typography variant='caption' sx={{color:'gray', ml:3}}>{percentFixed}%</Typography>
+                      </TableCell>
+                    <TableCell>{inactiveUnit}</TableCell>
+                    <TableCell>{createdAt}</TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
+            </Box>
+          </Collapse>
+        </TableCell>
+      </TableRow>
+
+      <Modal
+        open={open}
+        // onClose={handleClose}
+        aria-labelledby="modal-modal-title"
+        aria-describedby="modal-modal-description"
+      >
+        <Box sx={style}>
+          <Box mb={2} sx={{ display: 'flex', justifyContent: 'space-between' }}>
+            <Typography variant="h6" sx={{ fontWeight: 'bolder' }}>
+              Edit and view property informations
+            </Typography>
+            <IconButton onClick={handleClose}>
+              <HighlightOffIcon />
+            </IconButton>
+          </Box>
+
+          <Divider sx={{ mb: 5 }} />
+
+          {/* <<<<<<<<<<<>>>>>>>>>>>>>>>> */}
+          <TextField
+            variant="standard"
+            type="text"
+            value={propName}
+            fullWidth
+            onChange={(e) => setPropName(e.target.value)}
+            size="small"
+            margin="normal"
+            label="Property Name"
+          />
+
+          <TextField
+            variant="standard"
+            type="text"
+            value={address}
+            fullWidth
+            margin="normal"
+            onChange={(e) => setaddress(e.target.value)}
+            size="small"
+            label="Property Address"
+          />
+
+          <TextField
+            variant="standard"
+            type="text"
+            value={propUnit}
+            fullWidth
+            margin="normal"
+            onChange={(e) => setUnit(e.target.value)}
+            size="small"
+            label="Total No. of  Units"
+          />
+
+          {/* <<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>> */}
+
+          <Box sx={{ mt: 4, border: '1px solid #000', borderRadius: '5px', p: 3 }}>
+            <Grid container>
+              <Grid Item>
+                <Typography variant="h6" sx={{ fontWeight: 'bolder' }}>
+                  Document ID:
+                </Typography>
+                <Typography variant="body1">{propID}</Typography>
+              </Grid>
+              <Grid Item>
+                <Typography variant="h6" sx={{ fontWeight: 'bolder' }}>
+                  Date Created:
+                </Typography>
+                <Typography variant="body1">{createdAt}</Typography>
+              </Grid>
+            </Grid>
+          </Box>
+          {/* <<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>> */}
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 5 }}>
+            <LoadingButton variant="outlined" color="error" onClick={handleClickPop}>
+              <DeleteIcon sx={{ fontSize: '15px', mr: 1 }} />
+              Delete{' '}
+            </LoadingButton>
+
+            {!loading && (
+              <LoadingButton
+                size="small"
+                type="submit"
+                key={propID}
+                onClick={() => handleSaveChanges(propID)}
+                variant="contained"
+              >
+                Save Changes
+              </LoadingButton>
+            )}
+            {loading && (
+              <LoadingButton
+                loading
+                loadingPosition="start"
+                startIcon={<SaveIcon />}
+                size="small"
+                type="submit"
+                variant="contained"
+                disabled
+              >
+                Updating Document
+              </LoadingButton>
+            )}
+          </Box>
+        </Box>
+      </Modal>
+
+      <Popover
+        id={id}
+        open={openPop}
+        anchorEl={anchorEl}
+        onClose={handleClosePop}
+        anchorOrigin={{
+          vertical: 'top',
+          horizontal: 'left',
+        }}
+        transformOrigin={{
+          vertical: 'bottom',
+          horizontal: 'left',
+        }}
+      >
+        <Typography sx={{ p: 2 }}>Are you sure </Typography>
+        <Box sx={{ m: 2 }}>
+          <Button
+            variant="contained"
+            size="small"
+            color="error"
+            sx={{ mr: 2 }}
+            onClick={() => {
+              deleteDocument(propID);
+              handleClosePop();
+              handleClose();
+            }}
+            key={propID}
+          >
+            Yes
+          </Button>
+          <Button variant="contained" size="small" onClick={handleClosePop}>
+            No
+          </Button>
+        </Box>
+      </Popover>
+    </>
+  );
+}
 
 // ----------------------------------------------------------------------
 
@@ -123,8 +465,7 @@ function applySortFilter(array, comparator, query) {
 
 // ----------------------------------------------------------------------
 
-export default function UserPage() {
-  // const [open, setOpen] = useState(null);
+export default function UserPage(props) {
 
   const [page, setPage] = useState(0);
 
@@ -132,142 +473,54 @@ export default function UserPage() {
 
   const [selected, setSelected] = useState([]);
 
-  const [newUnit, setNewUnit] = useState([]);
-
-  const [createdAt, setCreatedAt] = useState('');
-
   const [orderBy, setOrderBy] = useState('name');
 
   const [filterName, setFilterName] = useState('');
 
-  const [open, setOpen] = useState(false);
-
-  const handleClose = () => setOpen(false);
-
   const [rowsPerPage, setRowsPerPage] = useState(5);
-
-  const { deleteDocument } = useFirestore('Properties');
 
   const user = JSON.parse(window.localStorage.getItem('user'));
 
   const { document } = useCollection('Properties', ['uid', '==', user.uid]);
 
-  const { activeUnit } = useCollection('Users');
-
-  const [loading, setLoading] = useState(false)
-
   const USERLIST = document ?? [];
 
-  const [anchorEl, setAnchorEl] = useState(null);
 
-  const handleClickPop = (event) => {
-    setAnchorEl(event.currentTarget);
-  };
+  // ----------------------------------------------------------------------
 
-  const handleClosePop = () => {
-    setAnchorEl(null);
-  };
-  const openPop = Boolean(anchorEl);
-  const id = openPop ? 'simple-popover' : undefined;
+  // ----------------------------------------------------------------------
 
-  // ----------------------------------------------------------------------Edit Document Field
-  const [propName, setPropName] = useState('');
-  const [address, setaddress] = useState('');
-  const [propID, setPropID] = useState('');
-  const [propUnit, setUnit] = useState('');
+
   
-
-  // ----------------------------------------------------------------------
-
-
-
-  const handleSaveChanges = (id) =>{
-    setLoading(true)
-    const Ref = projectFirestore.collection("Properties").doc(id);
-
-    // Set the "capital" field of the city 'DC'
-    return Ref.update({
-        propName,
-        address,
-        propUnit
-
-    })
-    .then(() => {
-      setLoading(false)
-      window.location.reload(true)
-        console.log("Document successfully updated!");
-    })
-    .catch((error) => {
-        // The document probably doesn't exist.
-        console.error("Error updating document: ", error);
-    });
-    
-  }
-
-
-  // ----------------------------------------------------------------------
-
-  // ---------------------------------------------------------------------- Get Single Property Data & Modal State
-
-  const handleOpen = (id) => {
-    setOpen(true);
-    const docRef = projectFirestore.collection('Properties').doc(id);
-    docRef
-      .get()
-      .then((doc) => {
-        if (doc.exists) {
-          // console.log('Document data:', doc.data().propName);
-          setPropName(doc.data().propName);
-          setaddress(doc.data().address);
-          setPropID(id);
-          setUnit(doc.data().propUnit);
-          
-
-          const creeatedAtData = new Date(doc.data().createdAt.seconds * 1000).toLocaleDateString('en-US');
-          setCreatedAt(creeatedAtData);
-        } else {
-          // doc.data() will be undefined in this case
-          console.log('No such document!');
-        }
-      })
-      .catch((error) => {
-        console.log('Error getting document:', error);
-      });
-  };
-
-  // ----------------------------------------------------------------------
-
-  // ----------------------------------------------------------------------
-
   const handleRequestSort = (event, property) => {
     const isAsc = orderBy === property && order === 'asc';
     setOrder(isAsc ? 'desc' : 'asc');
     setOrderBy(property);
   };
 
-  const handleSelectAllClick = (event) => {
-    if (event.target.checked) {
-      const newSelecteds = USERLIST.map((n) => n.name);
-      setSelected(newSelecteds);
-      return;
-    }
-    setSelected([]);
-  };
+  // const handleSelectAllClick = (event) => {
+  //   if (event.target.checked) {
+  //     const newSelecteds = USERLIST.map((n) => n.name);
+  //     setSelected(newSelecteds);
+  //     return;
+  //   }
+  //   setSelected([]);
+  // };
 
-  const handleClick = (event, name) => {
-    const selectedIndex = selected.indexOf(name);
-    let newSelected = [];
-    if (selectedIndex === -1) {
-      newSelected = newSelected.concat(selected, name);
-    } else if (selectedIndex === 0) {
-      newSelected = newSelected.concat(selected.slice(1));
-    } else if (selectedIndex === selected.length - 1) {
-      newSelected = newSelected.concat(selected.slice(0, -1));
-    } else if (selectedIndex > 0) {
-      newSelected = newSelected.concat(selected.slice(0, selectedIndex), selected.slice(selectedIndex + 1));
-    }
-    setSelected(newSelected);
-  };
+  // const handleClick = (event, name) => {
+  //   const selectedIndex = selected.indexOf(name);
+  //   let newSelected = [];
+  //   if (selectedIndex === -1) {
+  //     newSelected = newSelected.concat(selected, name);
+  //   } else if (selectedIndex === 0) {
+  //     newSelected = newSelected.concat(selected.slice(1));
+  //   } else if (selectedIndex === selected.length - 1) {
+  //     newSelected = newSelected.concat(selected.slice(0, -1));
+  //   } else if (selectedIndex > 0) {
+  //     newSelected = newSelected.concat(selected.slice(0, selectedIndex), selected.slice(selectedIndex + 1));
+  //   }
+  //   setSelected(newSelected);
+  // };
 
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
@@ -322,7 +575,7 @@ export default function UserPage() {
                   //  >>>>>>>>>>>>>>>>>>>>>>>>>><<<<<<<<<<<<<<<<<<<<
                 )}
 
-                <Table>
+                <Table aria-label="collapsible table">
                   <UserListHead
                     order={order}
                     orderBy={orderBy}
@@ -330,11 +583,11 @@ export default function UserPage() {
                     rowCount={USERLIST.length}
                     numSelected={selected.length}
                     onRequestSort={handleRequestSort}
-                    onSelectAllClick={handleSelectAllClick}
+                    // onSelectAllClick={handleSelectAllClick}
                   />
 
                   <TableBody>
-                    <TableRow padding="checkbox">
+                    {/* <TableRow padding="checkbox">
                       <TableCell component="th" scope="row" padding="none" />
 
                       <TableCell align="left" sx={{ fontWeight: 'bolder' }}>
@@ -349,41 +602,14 @@ export default function UserPage() {
                       <TableCell align="left" sx={{ fontWeight: 'bolder', textAlign: 'center' }}>
                         20
                       </TableCell>
-                    </TableRow>
+                    </TableRow> */}
                     {filteredUsers.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => {
-                      const { propName, id } = row;
-                      const selectedUser = selected.indexOf(propName) !== -1;
+                      const { propName, id, propUnit } = row;
 
                       return (
                         <>
                           {/* <<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>> */}
-                          <TableRow hover key={USERLIST.id} role="checkbox" selected={selectedUser}>
-                            <TableCell padding="checkbox">
-                              <Checkbox checked={selectedUser} onChange={(event) => handleClick(event, propName)} />
-                            </TableCell>
-
-                            <TableCell component="th" scope="row" padding="none">
-                              <Stack direction="row" alignItems="center" spacing={2}>
-                                <Tooltip title="Click to view and edit more info">
-                                  <Typography
-                                    variant="subtitle2"
-                                    noWrap
-                                    sx={{ cursor: 'pointer' }}
-                                    key={id}
-                                    onClick={() => handleOpen(id)}
-                                  >
-                                    {propName}
-                                  </Typography>
-                                </Tooltip>
-                              </Stack>
-                            </TableCell>
-
-                            <TableCell align="left">A</TableCell>
-
-                            <TableCell align="left"> </TableCell>
-
-                            <TableCell align="left"> </TableCell>
-                          </TableRow>
+                          <Row key={row.id} row={row} />
                         </>
                       );
                     })}
@@ -436,128 +662,8 @@ export default function UserPage() {
         </Container>
 
         {/* >>>>>>>>>>>>>>>>>>>>>>>>>>><<<<<<<<<<<<<<<<<<<<<<<<<<< */}
-        <Modal
-          open={open}
-          // onClose={handleClose}
-          aria-labelledby="modal-modal-title"
-          aria-describedby="modal-modal-description"
-        >
-          <Box sx={style}>
 
-            <Box mb={2} sx={{ display: 'flex', justifyContent: 'space-between' }}>
-              <Typography variant="h6" sx={{ fontWeight: 'bolder' }}>
-                Edit and view property informations
-              </Typography>
-              <IconButton onClick={handleClose}>
-                <HighlightOffIcon />
-              </IconButton>
-            </Box>
-
-            <Divider sx={{ mb: 5 }} />
-
-            {/* <<<<<<<<<<<>>>>>>>>>>>>>>>> */}
-            <TextField
-              variant="standard"
-              type="text"
-              value={propName}
-              fullWidth
-              onChange={(e) => setPropName(e.target.value)}
-              size="small"
-              margin="normal"
-              label="Property Name"
-            />
-
-            <TextField
-              variant="standard"
-              type="text"
-              value={address}
-              fullWidth
-              margin="normal"
-              onChange={(e) => setaddress(e.target.value)}
-              size="small"
-              label="Property Address"
-            />
-
-            <TextField
-              variant="standard"
-              type="text"
-              value={propUnit}
-              fullWidth
-              margin="normal"
-              onChange={(e) => setUnit(e.target.value)}
-              size="small"
-              label="Total No. of  Units"
-            />
-
-
-            {/* <<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>> */}
-
-
-
-            <Box sx={{ mt: 4, border: '1px solid #000', borderRadius: '5px', p: 3 }}>
-              <Grid container>
-                <Grid Item lg={6}>
-                  <Typography variant="h6" sx={{ fontWeight: 'bolder' }}>
-                  Document ID:
-                  </Typography>
-                  <Typography variant="body1">{propID}</Typography>
-                </Grid>
-                <Grid Item lg={6}>
-                  <Typography variant="h6" sx={{ fontWeight: 'bolder' }}>
-                    Date Created:
-                  </Typography>
-                  <Typography variant="body1">{createdAt}</Typography>
-                </Grid>
-              </Grid>
-            </Box>
-{/* <<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>> */}
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 5 }}>
-              <LoadingButton variant="outlined" color="error" onClick={handleClickPop}>
-                <DeleteIcon sx={{ fontSize: '15px', mr: 1 }} />
-                Delete{' '}
-              </LoadingButton>
-
-
-              {!loading && 
-      <LoadingButton  size="small" type="submit" key={propID} onClick={()=>handleSaveChanges(propID)} variant="contained">
-        Save Changes
-      </LoadingButton>}
-{loading && 
-      <LoadingButton   loading
-      loadingPosition="start"      startIcon={<SaveIcon />} size="small" type="submit" variant="contained" disabled >
-        Updating Document
-      </LoadingButton>}
-            </Box>
-          </Box>
-        </Modal>
-
-
-        <Popover
-        id={id}
-        open={openPop}
-        anchorEl={anchorEl}
-        onClose={handleClosePop}
-        anchorOrigin={{
-          vertical: 'top',
-          horizontal: 'left',
-        }}
-        transformOrigin={{
-          vertical: 'bottom',
-          horizontal: 'left',
-        }}
-      >
-        <Typography sx={{ p: 2 }}>Are you sure </Typography>
-        <Box sx={{m:2}}>
-
-        <Button variant="contained" size='small'  color='error' sx={{mr:2}} onClick={()=>{
-          deleteDocument(propID)
-        handleClosePop()
-      handleClose()}
-          }
-            key={propID}>Yes</Button>
-        <Button variant="contained" size='small' onClick={handleClosePop}>No</Button>
-        </Box>
-      </Popover>
+       
       </ThemeProvider>
     </>
   );
