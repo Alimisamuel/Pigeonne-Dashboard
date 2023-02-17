@@ -8,6 +8,7 @@ import FormControl from '@mui/material/FormControl';
 import Select from '@mui/material/Select';
 import { Toolbar, Tooltip, IconButton, Typography, OutlinedInput, InputAdornment, Box } from '@mui/material';
 // component
+import moment from 'moment/moment';
 import Iconify from '../../../components/iconify';
 
 // ----------------------------------------------------------------------
@@ -22,7 +23,7 @@ const StyledRoot = styled(Toolbar)(({ theme }) => ({
 const StyledSearch = styled(OutlinedInput)(({ theme }) => ({
   width: 240,
   height: 40,
-  // marginLeft:5,
+
   transition: theme.transitions.create(['box-shadow', 'width'], {
     easing: theme.transitions.easing.easeInOut,
     duration: theme.transitions.duration.shorter,
@@ -60,38 +61,46 @@ const month = months[date.getMonth()];
 // const lMonth = months[date.getMonth() - 1]
 
 // const now = new Date();
-const today = new Date(date.getFullYear(), date.getMonth(), date.getDate() ).toDateString();
+const today = new Date(date.getFullYear(), date.getMonth(), date.getDate()).toDateString();
 const yesterdays = new Date(date.getFullYear(), date.getMonth(), date.getDate() - 1).toDateString();
 const oneWeek = new Date(date.getFullYear(), date.getMonth(), date.getDate() - 7).toDateString();
 const twoWeek = new Date(date.getFullYear(), date.getMonth(), date.getDate() - 14).toDateString();
-const threeMonths = new Date(date.getFullYear(), date.getMonth(), date.getDate() - 90).getMonth()
-const threeYear = new Date(date.getFullYear(), date.getMonth(), date.getDate() - 90).getFullYear()
-const lMonth = new Date(date.getFullYear(), date.getMonth(), date.getDate() - 30).toDateString()
-const lYear = new Date(date.getFullYear(), date.getMonth(), date.getDate() - 30).getFullYear()
+const threeMonths = new Date(date.getFullYear(), date.getMonth(), date.getDate() - 90).getMonth();
+const threeYear = new Date(date.getFullYear(), date.getMonth(), date.getDate() - 90).getFullYear();
+const lMonth = new Date(date.getFullYear(), date.getMonth(), date.getDate() - 30).toDateString();
+const lYear = new Date(date.getFullYear(), date.getMonth(), date.getDate() - 30).getFullYear();
 
-
-
-console.log(threeMonths)
+console.log(threeMonths);
 // >>>>>>>>>>>>><<<<<<<<<<<<<<<<<<>>>>>>>>>>><<<<<<<<<<<
-const thisWeek = `${today} - ${oneWeek}`
-const lastWeek = `${oneWeek} - ${twoWeek}`
-const thisMonth = ` ${today} - ${lMonth}`
-const lastMonth =`${months[lMonth]} ${lYear}`
-const threeMonth = `${month}, ${year} - ${months[threeMonths]}, ${threeYear}`
+const thisWeek = ` ${oneWeek} - ${today}`;
+const lastWeek = `${twoWeek} - ${oneWeek} `;
+const thisMonth = `${lMonth} -  ${today}`;
+const lastMonth = `${months[lMonth]} ${lYear}`;
+const threeMonth = `${months[threeMonths]}, ${threeYear} - ${month}, ${year}`;
 
+
+const todayDateFormated = moment().format('M/DD/YYYY')
+const dateTo = moment().format('M/DD/YYYY');
+
+const dateFrom2 = moment().date()
+const dateFrom3 = moment().subtract(90,'d').diff(moment(), 'day')
+const dateFrom4 = moment().subtract(30,'d').diff(moment(), 'day')
+const dateFrom5 = moment().subtract(14,'d').diff(moment(), 'day')
+const dateFrom6 = moment().subtract(7,'d').diff(moment(), 'day')
+
+console.log(dateFrom2)
 // ----------------------------------------------------------------------
 
 UserListToolbar.propTypes = {
   numSelected: PropTypes.number,
   filterName: PropTypes.string,
+  filterDate: PropTypes.string,
   onFilterName: PropTypes.func,
+  onFilterDate: PropTypes.func,
 };
 
-export default function UserListToolbar({ numSelected, filterName, onFilterName }) {
-  const [age, setAge] = React.useState('');
-  const handleChange = (event) => {
-    setAge(event.target.value);
-  };
+export default function UserListToolbar({ numSelected, filterName, onFilterName, filterDate, onFilterDate }) {
+
   return (
     <StyledRoot
       sx={{
@@ -138,76 +147,65 @@ export default function UserListToolbar({ numSelected, filterName, onFilterName 
             Sort by Date
           </InputLabel>
           <Select
+            value={filterDate}
+            onChange={onFilterDate}
             labelId="demo-simple-select-label"
             id="demo-simple-select"
             variant="standard"
-            value={age}
             size="small"
             label="Age"
-            onChange={handleChange}
+        
           >
-            <MenuItem value={10}>
+            <MenuItem value={"0"}>
               <Box sx={{ width: '100%', pl: 2 }}>
                 <Typography variant="caption" sx={{ textAlign: 'center' }}>
-                  {today}
+                  {todayDateFormated}
                 </Typography>
                 <br />
                 Today
               </Box>
             </MenuItem>
-            {/* <MenuItem value={20}>
-              <Box sx={{ width: '100%', pl: 2 }}>
-                <Typography variant="caption" sx={{ textAlign: 'center' }}>
-                  {yesterdays}
-                </Typography>
-                <br />
-                Yesterday
-              </Box>
-            </MenuItem> */}
-            <MenuItem value={30}>
+    
+
+            <MenuItem value={dateFrom6}>
               <Box sx={{ width: '100%', pl: 2 }}>
                 <Typography variant="caption" sx={{ textAlign: 'center' }}>
                   {thisWeek}
                 </Typography>
                 <br />
-               Last 7 days
+                Last 7 days
               </Box>
             </MenuItem>
-            <MenuItem value={40}>
+            <MenuItem value={dateFrom5}>
               <Box sx={{ width: '100%', pl: 2 }}>
                 <Typography variant="caption" sx={{ textAlign: 'center' }}>
-             {lastWeek}
+                  {lastWeek}
                 </Typography>
                 <br />
                 Last 14 days
               </Box>
             </MenuItem>
-            <MenuItem value={50}>
+            <MenuItem value={dateFrom4}>
               <Box sx={{ width: '100%', pl: 2 }}>
                 <Typography variant="caption" sx={{ textAlign: 'center' }}>
-              {thisMonth}
+                  {thisMonth}
                 </Typography>
                 <br />
                 Last 30 days
               </Box>
             </MenuItem>
-            {/* <MenuItem value={60}>
+     
+            <MenuItem value={dateFrom3}>
               <Box sx={{ width: '100%', pl: 2 }}>
                 <Typography variant="caption" sx={{ textAlign: 'center' }}>
-                {lastMonth}
-                </Typography>
-                <br />
-               
-              </Box>
-            </MenuItem> */}
-            <MenuItem value={70}>
-              <Box sx={{ width: '100%', pl: 2 }}>
-                <Typography variant="caption" sx={{ textAlign: 'center' }}>
-         {threeMonth}
+                  {threeMonth}
                 </Typography>
                 <br />
                 Last 90 days
               </Box>
+            </MenuItem>
+            <MenuItem value={''}>
+              <Box sx={{ width: '100%', pl: 2 }}>Clear Filter</Box>
             </MenuItem>
           </Select>
         </FormControl>

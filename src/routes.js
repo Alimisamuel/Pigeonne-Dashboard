@@ -25,7 +25,7 @@ export default function Router() {
       element:  <ProtectedRoute><DashboardLayout /></ProtectedRoute> ,
       children: [
         { element: <Navigate to="/dashboard/app" />, index: true },
-        { path: 'app', element:  <DashboardAppPage /> },
+        { path: 'app', element: <ProtectedRoute> <DashboardAppPage /> </ProtectedRoute> },
        {path:'properties', element:<UserPage/>}
       ],
     },

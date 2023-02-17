@@ -3,11 +3,11 @@ import { Navigate } from 'react-router-dom'
 // import { useUserAuth } from '../../context/AuthContexts';
 
 const ProtectedRoute = ({children}) => {
-  //   const { user} = useUserAuth();
-  //   if (!user){
-  //       return <Navigate to="/login" / >
-  //   }
-  // return children;
+  const user = JSON.parse(window.localStorage.getItem('user'));
+    if (!user){
+        return <Navigate to="/login" / >
+    }
+  return children;
 };
 
 export default ProtectedRoute

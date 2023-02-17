@@ -1,5 +1,5 @@
 import { Helmet } from 'react-helmet-async';
-import { filter } from 'lodash';
+import { filter, sort } from 'lodash';
 import _, { pluck } from 'underscore';
 import Modal from '@mui/material/Modal';
 import { useEffect, useState } from 'react';
@@ -35,6 +35,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import { LoadingButton } from '@mui/lab';
 import HighlightOffIcon from '@mui/icons-material/HighlightOff';
+import moment from 'moment';
 // components
 import Scrollbar from '../components/scrollbar';
 // sections
@@ -42,7 +43,6 @@ import { UserListHead, UserListToolbar } from '../sections/@dashboard/user';
 // Firetore Hook
 import { projectFirestore } from '../firebase/Config';
 import { useCollection } from '../hooks/useCollection';
-import { useUnit } from '../hooks/useUnit';
 import { useFirestore } from '../hooks/useFirestore';
 
 // ----------------------------------------------------------------------
@@ -98,11 +98,12 @@ function Row(props, docid) {
   const [propUnit, setUnit] = useState('');
   const [anchorEl, setAnchorEl] = useState(null);
   const [createdAt, setCreatedAt] = useState('');
-  const [documentUnit, setDocumentUnit] = useState(null)
+  const [documentUnit, setDocumentUnit] = useState([]);
+  const [deliveryUnit, setDeliveryUnit] = useState([]);
+  const { addDocument, response } = useFirestore('Properties');
   // const { documentUnit } = useUnit('Users', ['propertyid', '==', 'j41dzqEBtieRdZyKst7H']);
 
   // console.log(documentUnit)
-  
 
   const handleClickPop = (event) => {
     setAnchorEl(event.currentTarget);
@@ -150,8 +151,19 @@ function Row(props, docid) {
 
   // ----------------------------------------------------------------------
 
+
+
   const handleCollapse = (id) => {
-    
+    // console.log(createdAt);
+    //   const Ref = projectFirestore.collection('Properties').doc(id);
+
+    //  Ref.update({
+    //     propName,
+    //     address,
+    //     propUnit,
+    //   })
+    // getDeliveries();
+
     setOpenCol(!openCol);
     const docRef = projectFirestore.collection('Properties').doc(id);
     docRef
@@ -175,22 +187,48 @@ function Row(props, docid) {
         console.log('Error getting document:', error);
       });
 
-      const ref = projectFirestore.collection('Users').where("propertyid", "==", id)
-      const unsubscribe = ref.onSnapshot((snapshot)=>{
-        const result = [ ]
-        snapshot.docs.forEach(doc =>{
-            result.push({...doc.data( ) , id: doc.id})
-        })
-    
-        // update State
-        setDocumentUnit(result)
-    console.log(documentUnit.length)
+
+    documentUnit.map((user) => {
+      const ref = projectFirestore.collection('Delivery').where('userId', '==', user.id);
+      const unsubscribe = ref.onSnapshot(
+        (snapshot) => {
+          const result = [];
+          snapshot.docs.forEach((doc) => {
+            result.push({ ...doc.data(), id: doc.id });
+            console.log('Samuuna', result);
+          });
+
+          // update State
+          setDeliveryUnit(result);
+        },
+        (error) => {
+          console.log(error);
+        }
+      );
+      return () => unsubscribe();
+    });
+  
+    const ref = projectFirestore.collection('Users').where('propertyId', '==', id);
+    const unsubscribe = ref.onSnapshot(
+      (snapshot) => {
+        const result = [];
+        snapshot.docs.forEach((doc) => {
+          result.push({ ...doc.data(), id: doc.id });
+          console.log('Samuu', result);
       
-    }, (error)=>{
-        console.log(error)
-       
-    })
-    return ()=>unsubscribe()
+          // result.map((user)=>{
+          //   console.log("Sjjj", user.id)
+          // })
+        });
+
+        // update State
+        setDocumentUnit(result);
+      },
+      (error) => {
+        console.log(error);
+      }
+    );
+    return () => unsubscribe();
   };
 
   // Save changes function
@@ -198,6 +236,7 @@ function Row(props, docid) {
 
   // ----------------------------------------------------------------------
 
+  const datum = deliveryUnit.length ?? []
   const handleSaveChanges = (id) => {
     setLoading(true);
     const Ref = projectFirestore.collection('Properties').doc(id);
@@ -218,10 +257,11 @@ function Row(props, docid) {
       });
   };
 
-  const activeUnit = documentUnit ?? []
-  const inactiveUnit = row.propUnit -  activeUnit.length
-  const activePercentage = (activeUnit.length/row.propUnit)* 100
-  const percentFixed =parseFloat(  activePercentage.toFixed(2))
+  const activeUnit = documentUnit ?? [];
+
+  const inactiveUnit = row.propUnit - activeUnit.length;
+  const activePercentage = (activeUnit.length / row.propUnit) * 100;
+  const percentFixed = parseFloat(activePercentage.toFixed(2));
 
   return (
     <>
@@ -244,7 +284,7 @@ function Row(props, docid) {
         </TableCell>
         <TableCell>{row.id}</TableCell>
         <TableCell>{row.propUnit}</TableCell>
-        <TableCell>Sam</TableCell>
+        <TableCell>{new Date(row.createdAt.seconds * 1000).toLocaleDateString('en-US')}</TableCell>
       </TableRow>
       <TableRow sx={{ bgcolor: '#B2BEB5' }}>
         <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={6}>
@@ -259,7 +299,7 @@ function Row(props, docid) {
                     <TableCell sx={{ fontWeight: 'bolder' }}>Property Address</TableCell>
                     <TableCell sx={{ fontWeight: 'bolder' }}>Active Units</TableCell>
                     <TableCell sx={{ fontWeight: 'bolder' }}>Inactive Units</TableCell>
-                    <TableCell sx={{ fontWeight: 'bolder' }}>Date Created</TableCell>
+                    <TableCell sx={{ fontWeight: 'bolder' }}>Successful deliveries</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -267,13 +307,14 @@ function Row(props, docid) {
                     <TableCell component="th" scope="row">
                       {address}
                     </TableCell>
-                    <TableCell >
-
+                    <TableCell>
                       {activeUnit.length}
-                      <Typography variant='caption' sx={{color:'gray', ml:3}}>{percentFixed}%</Typography>
-                      </TableCell>
+                      <Typography variant="caption" sx={{ color: 'gray', ml: 3 }}>
+                        {percentFixed}%
+                      </Typography>
+                    </TableCell>
                     <TableCell>{inactiveUnit}</TableCell>
-                    <TableCell>{createdAt}</TableCell>
+                    <TableCell>{datum}</TableCell>
                   </TableRow>
                 </TableBody>
               </Table>
@@ -337,14 +378,14 @@ function Row(props, docid) {
           {/* <<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>> */}
 
           <Box sx={{ mt: 4, border: '1px solid #000', borderRadius: '5px', p: 3 }}>
-            <Grid container>
-              <Grid Item>
+            <Grid container spacing={3} p={2}>
+              <Grid item>
                 <Typography variant="h6" sx={{ fontWeight: 'bolder' }}>
                   Document ID:
                 </Typography>
                 <Typography variant="body1">{propID}</Typography>
               </Grid>
-              <Grid Item>
+              <Grid Item ml={4}>
                 <Typography variant="h6" sx={{ fontWeight: 'bolder' }}>
                   Date Created:
                 </Typography>
@@ -448,7 +489,9 @@ function getComparator(order, orderBy) {
     : (a, b) => -descendingComparator(a, b, orderBy);
 }
 
-function applySortFilter(array, comparator, query) {
+
+
+function applySortFilter(array, comparator, query, date) {
   const stabilizedThis = array.map((el, index) => [el, index]);
   stabilizedThis.sort((a, b) => {
     const order = comparator(a[0], b[0]);
@@ -458,15 +501,31 @@ function applySortFilter(array, comparator, query) {
   if (query) {
     return filter(array, (_user) => _user.propName.toLowerCase().indexOf(query.toLowerCase()) !== -1);
   }
+  if (date) {
+    return filter(
+      array,
+      (_user) => moment(_user.createdAt.seconds * 1000).diff(moment(), 'day') >= date
+    );
+  }
+  // if(date === "thisWeek"){
+  //   console.log("Happy")
+  //   const today = moment().date()
+
+  //   return filter(
+  //     array,
+  //     (_user) => new Date(_user.createdAt.seconds * 1000).toLocaleDateString('en-US').diff(today, 'days')
+
+  //   );
+  // }
   return stabilizedThis.map((el) => el[0]);
 }
+
 
 // ----------------------------------------------------------------------
 
 // ----------------------------------------------------------------------
 
 export default function UserPage(props) {
-
   const [page, setPage] = useState(0);
 
   const [order, setOrder] = useState('asc');
@@ -477,6 +536,8 @@ export default function UserPage(props) {
 
   const [filterName, setFilterName] = useState('');
 
+  const [filterDate, setFilterDate] = useState('');
+
   const [rowsPerPage, setRowsPerPage] = useState(5);
 
   const user = JSON.parse(window.localStorage.getItem('user'));
@@ -485,13 +546,17 @@ export default function UserPage(props) {
 
   const USERLIST = document ?? [];
 
-
   // ----------------------------------------------------------------------
 
   // ----------------------------------------------------------------------
 
+  const me = USERLIST.map((data)=>{
+    const today = moment().format('M/DD/YYYY')
+    const show = moment(data.createdAt.seconds * 1000).diff(moment(), 'day')
 
-  
+    // console.log("Meeee", show >= 0);
+    })
+
   const handleRequestSort = (event, property) => {
     const isAsc = orderBy === property && order === 'asc';
     setOrder(isAsc ? 'desc' : 'asc');
@@ -526,6 +591,7 @@ export default function UserPage(props) {
     setPage(newPage);
   };
 
+  // console.log(USERLIST)
   const handleChangeRowsPerPage = (event) => {
     setPage(0);
     setRowsPerPage(parseInt(event.target.value, 10));
@@ -535,6 +601,11 @@ export default function UserPage(props) {
     setPage(0);
     setFilterName(event.target.value);
   };
+  const handleFilterByDate = (event) => {
+    setPage(0);
+    setFilterDate(event.target.value);
+    console.log(filterDate, 'Ebum');
+  };
 
   // ----------------------------------------------------------------------
 
@@ -542,9 +613,10 @@ export default function UserPage(props) {
 
   const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - USERLIST.length) : 0;
 
-  const filteredUsers = applySortFilter(USERLIST, getComparator(order, orderBy), filterName);
+  const filteredUsers = applySortFilter(USERLIST, getComparator(order, orderBy), filterName, filterDate);
 
   const isNotFound = !filteredUsers.length && !!filterName;
+  const isNotFoundDate = !filteredUsers.length && !!filterDate;
 
   return (
     <>
@@ -561,7 +633,13 @@ export default function UserPage(props) {
           </Stack>
 
           <Card>
-            <UserListToolbar numSelected={selected.length} filterName={filterName} onFilterName={handleFilterByName} />
+            <UserListToolbar
+              numSelected={selected.length}
+              filterName={filterName}
+              onFilterName={handleFilterByName}
+              filterDate={filterDate}
+              onFilterDate={handleFilterByDate}
+            />
 
             <Scrollbar>
               <TableContainer sx={{ minWidth: 800 }}>
@@ -643,6 +721,29 @@ export default function UserPage(props) {
                       </TableRow>
                     </TableBody>
                   )}
+                  {isNotFoundDate && (
+                    <TableBody>
+                      <TableRow>
+                        <TableCell align="center" colSpan={6} sx={{ py: 3 }}>
+                          <Paper
+                            sx={{
+                              textAlign: 'center',
+                            }}
+                          >
+                            <Typography variant="h6" paragraph>
+                              Not found
+                            </Typography>
+
+                            <Typography variant="body2">
+                              No results found for &nbsp;
+                              <strong>&quot;{filterDate}&quot;</strong>.
+                              <br /> Try checking for typos or using complete words.
+                            </Typography>
+                          </Paper>
+                        </TableCell>
+                      </TableRow>
+                    </TableBody>
+                  )}
                 </Table>
 
                 {/* <<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>> */}
@@ -662,8 +763,6 @@ export default function UserPage(props) {
         </Container>
 
         {/* >>>>>>>>>>>>>>>>>>>>>>>>>>><<<<<<<<<<<<<<<<<<<<<<<<<<< */}
-
-       
       </ThemeProvider>
     </>
   );

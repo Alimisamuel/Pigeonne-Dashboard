@@ -1,3 +1,5 @@
+/* eslint-disable camelcase */
+
 import { useState, useRef, useEffect, useMemo } from 'react';
 import PropTypes from 'prop-types';
 // @mui
@@ -6,6 +8,7 @@ import LocationOnIcon from '@mui/icons-material/LocationOn';
 import { debounce } from '@mui/material/utils';
 import CssBaseline from '@mui/material/CssBaseline';
 import SaveIcon from '@mui/icons-material/Save';
+import { v4 as uuid } from 'uuid';
 // import CloseIcon from '@mui/icons-material/Close';
 import Modal from '@mui/material/Modal';
 import { LoadingButton } from '@mui/lab';
@@ -103,6 +106,8 @@ Header.propTypes = {
 };
 
 export default function Header({ onOpenNav }) {
+  const id = uuid();
+
   const [value, setValue] = useState(null);
   const [inputValue, setInputValue] = useState('');
   const [options, setOptions] = useState([]);
@@ -112,9 +117,11 @@ export default function Header({ onOpenNav }) {
   const loaded = useRef(false);
   const { addDocument, response } = useFirestore('Properties');
   const [propUnit, setPropUnit] = useState('');
-  const [city, setCity] = useState()
+  const [onlyCity, setCity] = useState();
   const [propName, setPropName] = useState('');
   const { user } = useAuthContext();
+
+console.log(id)
 
   if (typeof window !== 'undefined' && !loaded.current) {
     if (!document.querySelector('#google-maps')) {
@@ -172,14 +179,14 @@ export default function Header({ onOpenNav }) {
     };
   }, [value, inputValue, fetch]);
 
-
-
-// >>>>>>>>>>>>>>>>>>>>>>>Handle Submit Button<<<<<<<<<<<<<<<<<<<<<<<
+  // >>>>>>>>>>>>>>>>>>>>>>>Handle Submit Button<<<<<<<<<<<<<<<<<<<<<<<
 
   const handleCreateProperty = (e) => {
     e.preventDefault();
     const address = value.description;
-    addDocument({ uid: user.uid, propName, address, propUnit, city });
+    console.log(address);
+    const city = onlyCity[0]
+    addDocument({ uid: user.uid, propName, address, propUnit, city, id });
   };
 
   useEffect(() => {
@@ -187,7 +194,7 @@ export default function Header({ onOpenNav }) {
       setPropName('');
       setValue('');
       setPropUnit('');
-      setCity("")
+      setCity('');
 
       setTimeout(() => {
         response.success = false;
@@ -196,7 +203,6 @@ export default function Header({ onOpenNav }) {
   }, [response.success]);
 
   // const NewSammy = value.description ?? []
-
 
   return (
     <ThemeProvider theme={darkTheme}>
@@ -283,12 +289,12 @@ export default function Header({ onOpenNav }) {
               onChange={(event, newValue) => {
                 setOptions(newValue ? [newValue, ...options] : options);
                 setValue(newValue);
-    
-                setCity(newValue.description.split(",").slice(-2) )
+
+                setCity(newValue.description.split(',').slice(-2));
+                console.log(city[0]);
               }}
               onInputChange={(event, newInputValue) => {
                 setInputValue(newInputValue);
-      
               }}
               renderInput={(params) => <TextField {...params} label="Add a location" fullWidth />}
               renderOption={(props, option) => {

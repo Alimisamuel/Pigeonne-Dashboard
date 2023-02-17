@@ -40,6 +40,7 @@ if(!isCancelled){
         dispatch({type:'IS_PENDING'})
 try{
     const createdAt = timestamp.fromDate(new Date())
+    // const docId = doc.id
 const addedDoc = await ref.add({...doc, createdAt})
 dispatchIfNotCan({type: 'ADDED_DOCUMENT', payload:addedDoc})
 }catch(err){

@@ -47,7 +47,7 @@ export default function DashboardAppPage() {
      </Grid>
 
      <Grid item xs={12} sm={6} md={6} sx={{cursor:'pointer'}}>
-       <AppWidgetSummary title="Deliveries" total={1352831} color="info" icon={'carbon:delivery'} />
+       <AppWidgetSummary title="Deliveries" total="0" color="info" icon={'carbon:delivery'} />
      </Grid>
 
 
