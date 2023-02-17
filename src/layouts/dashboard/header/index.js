@@ -289,9 +289,7 @@ console.log(id)
               onChange={(event, newValue) => {
                 setOptions(newValue ? [newValue, ...options] : options);
                 setValue(newValue);
-
                 setCity(newValue.description.split(',').slice(-2));
-                console.log(city[0]);
               }}
               onInputChange={(event, newInputValue) => {
                 setInputValue(newInputValue);

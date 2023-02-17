@@ -1,6 +1,5 @@
 import { Helmet } from 'react-helmet-async';
-import { filter, sort } from 'lodash';
-import _, { pluck } from 'underscore';
+import { filter, } from 'lodash';
 import Modal from '@mui/material/Modal';
 import { useEffect, useState } from 'react';
 // @mui
@@ -25,6 +24,7 @@ import {
   Divider,
   Grid,
   Popover,
+  Tooltip,
   TableHead,
 } from '@mui/material';
 import Collapse from '@mui/material/Collapse';
@@ -45,6 +45,9 @@ import { projectFirestore } from '../firebase/Config';
 import { useCollection } from '../hooks/useCollection';
 import { useFirestore } from '../hooks/useFirestore';
 
+// ----------------------------------------------------------------------
+
+// ----------------------------------------------------------------------
 // ----------------------------------------------------------------------
 
 // ----------------------------------------------------------------------
@@ -85,6 +88,10 @@ const TABLE_HEAD = [
   { id: 'isVerified', label: 'Successful deliveries', alignRight: false },
 ];
 
+// ----------------------------------------------------------------------
+
+// ----------------------------------------------------------------------
+
 function Row(props, docid) {
   const { row } = props;
   const [openCol, setOpenCol] = useState(false);
@@ -100,22 +107,26 @@ function Row(props, docid) {
   const [createdAt, setCreatedAt] = useState('');
   const [documentUnit, setDocumentUnit] = useState([]);
   const [deliveryUnit, setDeliveryUnit] = useState([]);
-  const { addDocument, response } = useFirestore('Properties');
-  // const { documentUnit } = useUnit('Users', ['propertyid', '==', 'j41dzqEBtieRdZyKst7H']);
 
-  // console.log(documentUnit)
+  // ----------------------------------------------------------------------
+
+  // ----------------------------------------------------------------------
 
   const handleClickPop = (event) => {
     setAnchorEl(event.currentTarget);
   };
+    // ----------------------------------------------------------------------
 
   const handleClosePop = () => {
     setAnchorEl(null);
   };
+    // ----------------------------------------------------------------------
 
   const openPop = Boolean(anchorEl);
 
   const id = openPop ? 'simple-popover' : undefined;
+
+
 
   // Get single property for modal
   // ----------------------------------------------------------------------
@@ -128,7 +139,6 @@ function Row(props, docid) {
       .get()
       .then((doc) => {
         if (doc.exists) {
-          // console.log('Document data:', doc.data().propName);
           setPropName(doc.data().propName);
           setaddress(doc.data().address);
           setPropID(id);
@@ -137,7 +147,6 @@ function Row(props, docid) {
           const creeatedAtData = new Date(doc.data().createdAt.seconds * 1000).toLocaleDateString('en-US');
           setCreatedAt(creeatedAtData);
         } else {
-          // doc.data() will be undefined in this case
           console.log('No such document!');
         }
       })
@@ -145,6 +154,8 @@ function Row(props, docid) {
         console.log('Error getting document:', error);
       });
   };
+
+
 
   // Get single property for Collapse
   // ----------------------------------------------------------------------
@@ -154,15 +165,6 @@ function Row(props, docid) {
 
 
   const handleCollapse = (id) => {
-    // console.log(createdAt);
-    //   const Ref = projectFirestore.collection('Properties').doc(id);
-
-    //  Ref.update({
-    //     propName,
-    //     address,
-    //     propUnit,
-    //   })
-    // getDeliveries();
 
     setOpenCol(!openCol);
     const docRef = projectFirestore.collection('Properties').doc(id);
@@ -216,9 +218,6 @@ function Row(props, docid) {
           result.push({ ...doc.data(), id: doc.id });
           console.log('Samuu', result);
       
-          // result.map((user)=>{
-          //   console.log("Sjjj", user.id)
-          // })
         });
 
         // update State
@@ -237,6 +236,8 @@ function Row(props, docid) {
   // ----------------------------------------------------------------------
 
   const datum = deliveryUnit.length ?? []
+
+
   const handleSaveChanges = (id) => {
     setLoading(true);
     const Ref = projectFirestore.collection('Properties').doc(id);
@@ -278,9 +279,12 @@ function Row(props, docid) {
           key={row.id}
           onClick={() => handleOpen(row.id)}
         >
-          {/* <Tooltip title="Delete"> */}
+          <Tooltip title="Click to edit and delete">
+            <Typography variant='body'>
+
           {row.propName}
-          {/* </Tooltip> */}
+            </Typography>
+          </Tooltip>
         </TableCell>
         <TableCell>{row.id}</TableCell>
         <TableCell>{row.propUnit}</TableCell>
@@ -550,12 +554,6 @@ export default function UserPage(props) {
 
   // ----------------------------------------------------------------------
 
-  const me = USERLIST.map((data)=>{
-    const today = moment().format('M/DD/YYYY')
-    const show = moment(data.createdAt.seconds * 1000).diff(moment(), 'day')
-
-    // console.log("Meeee", show >= 0);
-    })
 
   const handleRequestSort = (event, property) => {
     const isAsc = orderBy === property && order === 'asc';
