@@ -1,7 +1,7 @@
 import { Container } from '@mui/system'
 import React from 'react'
 
-const Properties = () => {
+export default const Properties = () => {
   return (
     <Container maxWidth="xl">
       <h1 style={{color:'black'}}>fg</h1>
@@ -9,4 +9,3 @@ const Properties = () => {
   )
 }
 
-export default Properties

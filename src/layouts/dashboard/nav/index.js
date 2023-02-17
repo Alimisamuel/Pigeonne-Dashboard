@@ -40,7 +40,7 @@ export default function Nav({ openNav, onCloseNav }) {
   const { pathname } = useLocation();
 const {user} = useAuthContext()
   const isDesktop = useResponsive('up', 'lg');
-// console.log('New User',user.displayName)
+
   useEffect(() => {
     if (openNav) {
       onCloseNav();
@@ -91,10 +91,6 @@ const {user} = useAuthContext()
       <NavSection data={navConfig} />
 
       <Box sx={{ flexGrow: 1 }} />
-
-      {/* <Box sx={{ px: 2.5, pb: 3, mt: 10 }}>
-      
-      </Box> */}
     </Scrollbar>
   );
 

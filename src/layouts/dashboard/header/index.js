@@ -9,7 +9,6 @@ import { debounce } from '@mui/material/utils';
 import CssBaseline from '@mui/material/CssBaseline';
 import SaveIcon from '@mui/icons-material/Save';
 import { v4 as uuid } from 'uuid';
-// import CloseIcon from '@mui/icons-material/Close';
 import Modal from '@mui/material/Modal';
 import { LoadingButton } from '@mui/lab';
 import {
@@ -109,19 +108,31 @@ export default function Header({ onOpenNav }) {
   const id = uuid();
 
   const [value, setValue] = useState(null);
+
   const [inputValue, setInputValue] = useState('');
+
   const [options, setOptions] = useState([]);
+
   const [open, setOpen] = useState(false);
+
   const handleOpen = () => setOpen(true);
+
   const handleClose = () => setOpen(false);
+
   const loaded = useRef(false);
+
   const { addDocument, response } = useFirestore('Properties');
+
   const [propUnit, setPropUnit] = useState('');
+
   const [onlyCity, setCity] = useState();
+
   const [propName, setPropName] = useState('');
+
   const { user } = useAuthContext();
 
-console.log(id)
+  // ----------------------------------------------------------------------
+  // ----------------------------------------------------------------------
 
   if (typeof window !== 'undefined' && !loaded.current) {
     if (!document.querySelector('#google-maps')) {
@@ -185,7 +196,7 @@ console.log(id)
     e.preventDefault();
     const address = value.description;
     console.log(address);
-    const city = onlyCity[0]
+    const city = onlyCity[0];
     addDocument({ uid: user.uid, propName, address, propUnit, city, id });
   };
 
@@ -202,7 +213,7 @@ console.log(id)
     }
   }, [response.success]);
 
-  // const NewSammy = value.description ?? []
+
 
   return (
     <ThemeProvider theme={darkTheme}>
@@ -234,8 +245,7 @@ console.log(id)
             <Button variant="outlined" sx={{ mr: 4 }} onClick={handleOpen}>
               Create Properties
             </Button>
-            {/* <LanguagePopover /> */}
-            {/* <NotificationsPopover /> */}
+           
             <AccountPopover />
           </Stack>
         </StyledToolbar>

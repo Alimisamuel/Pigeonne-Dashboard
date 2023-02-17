@@ -1,14 +1,14 @@
 import { useState } from 'react';
 // @mui
 import { alpha } from '@mui/material/styles';
-import { Box, Divider, Typography, Stack, MenuItem, Avatar, IconButton, Popover, Skeleton } from '@mui/material';
+import { Box, Divider, Typography, MenuItem, Avatar, IconButton, Popover, Skeleton } from '@mui/material';
 // mocks_
-import { Link } from 'react-router-dom';
+
 import { useLogout } from '../../../hooks/useLogout'
 
-import account from '../../../_mock/account';
+
 import { useAuthContext } from '../../../hooks/useAuthContext';
-// import { useUserAuth } from '../../../context/AuthContexts';
+
 
 // ----------------------------------------------------------------------
 
@@ -25,7 +25,7 @@ const MENU_OPTIONS = [
 
 export default function AccountPopover() {
 
-  // const {user, logOut} = useUserAuth();
+
   const [open, setOpen] = useState(null);
   const {user} = useAuthContext()
   const {logout} = useLogout()
@@ -36,16 +36,7 @@ export default function AccountPopover() {
 const handleCloseModal = () =>{
   setOpen(null);
 }
-//   const handleClose = async() => {
 
-
-//     try{
-// await logOut();
-// setOpen(null);
-//     }catch (err){
-// console.log(err.message)
-//     }
-//   };
 
   return (
     <>
@@ -94,7 +85,7 @@ const handleCloseModal = () =>{
       >
         <Box sx={{ my: 1.5, px: 2.5 }}>
           <Typography variant="subtitle2" noWrap>
-            {/* {account.displayName} */}
+            {user.displayName}
           </Typography>
           <Typography variant="body2" sx={{ color: 'text.secondary' }} noWrap>
 
@@ -106,7 +97,7 @@ const handleCloseModal = () =>{
           </Typography>
         </Box>
 
-        {/* <Divider sx={{ borderStyle: 'dashed' }} /> */}
+   
 
       
 

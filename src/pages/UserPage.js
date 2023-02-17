@@ -561,35 +561,11 @@ export default function UserPage(props) {
     setOrderBy(property);
   };
 
-  // const handleSelectAllClick = (event) => {
-  //   if (event.target.checked) {
-  //     const newSelecteds = USERLIST.map((n) => n.name);
-  //     setSelected(newSelecteds);
-  //     return;
-  //   }
-  //   setSelected([]);
-  // };
-
-  // const handleClick = (event, name) => {
-  //   const selectedIndex = selected.indexOf(name);
-  //   let newSelected = [];
-  //   if (selectedIndex === -1) {
-  //     newSelected = newSelected.concat(selected, name);
-  //   } else if (selectedIndex === 0) {
-  //     newSelected = newSelected.concat(selected.slice(1));
-  //   } else if (selectedIndex === selected.length - 1) {
-  //     newSelected = newSelected.concat(selected.slice(0, -1));
-  //   } else if (selectedIndex > 0) {
-  //     newSelected = newSelected.concat(selected.slice(0, selectedIndex), selected.slice(selectedIndex + 1));
-  //   }
-  //   setSelected(newSelected);
-  // };
 
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
   };
 
-  // console.log(USERLIST)
   const handleChangeRowsPerPage = (event) => {
     setPage(0);
     setRowsPerPage(parseInt(event.target.value, 10));
@@ -659,26 +635,11 @@ export default function UserPage(props) {
                     rowCount={USERLIST.length}
                     numSelected={selected.length}
                     onRequestSort={handleRequestSort}
-                    // onSelectAllClick={handleSelectAllClick}
+       
                   />
 
                   <TableBody>
-                    {/* <TableRow padding="checkbox">
-                      <TableCell component="th" scope="row" padding="none" />
-
-                      <TableCell align="left" sx={{ fontWeight: 'bolder' }}>
-                        Total
-                      </TableCell>
-                      <TableCell align="left" sx={{ fontWeight: 'bolder', textAlign: 'center' }}>
-                        1,054
-                      </TableCell>
-                      <TableCell align="left" sx={{ fontWeight: 'bolder', textAlign: 'center' }}>
-                        14.4
-                      </TableCell>
-                      <TableCell align="left" sx={{ fontWeight: 'bolder', textAlign: 'center' }}>
-                        20
-                      </TableCell>
-                    </TableRow> */}
+         
                     {filteredUsers.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => {
                       const { propName, id, propUnit } = row;
 
