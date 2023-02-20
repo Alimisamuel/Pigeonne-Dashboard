@@ -85,7 +85,7 @@ const TABLE_HEAD = [
   { id: 'name', label: 'Properties', alignRight: false },
   { id: 'company', label: 'Property ID', alignRight: false },
   { id: 'role', label: 'Total number of units', alignRight: false },
-  { id: 'isVerified', label: 'Successful deliveries', alignRight: false },
+  { id: 'isVerified', label: 'Date Created', alignRight: false },
 ];
 
 // ----------------------------------------------------------------------
