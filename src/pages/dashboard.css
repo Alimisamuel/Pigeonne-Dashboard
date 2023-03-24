@@ -17,3 +17,194 @@ h1{
     color: rgb(3, 116, 64);
     color:rgb(74, 239, 160)
 }
+
+
+@font-face {
+    font-family: 'pangram';
+    src: url('../Pangram-Regular.otf');
+}
+
+body{
+    background-color: #f0f0f0 !important;
+    font-family: 'pangram' !important;
+    margin: 0%;
+    transition: .3s ease-in !important ;
+}
+.appbar{
+   background-color: rgba(240, 240, 240, 0.1) !important;
+   transition: .3s ease-in !important ;
+   backdrop-filter: blur(5px);
+}
+a{
+    text-decoration: none;
+    font-weight: bolder !important;
+    font-size: 30px;
+
+}
+.appbar-bg{
+    
+background-color: #f0f0f0 !important;
+
+}
+.container{
+    width: 90%;
+    /* border: 2px solid pink; */
+    margin: 0 auto;
+}
+.heroe{
+    width: 100%;
+height: 800px;
+padding-bottom: 20px;
+background: url('../Img/heroe2.jpg');
+background-size: cover;
+background-position: center;
+color: #d6e6df;
+
+}
+.btn{
+padding: 10px 30px;
+background: none;
+border: 2px solid #f0f0f0;
+cursor: pointer;
+font-family: pangram;
+color: #f0f0f0;
+margin-top: 30px;
+transition: background 0.3s linear;
+
+}
+.btn:hover{
+background-color: #f0f0f0;
+color: #000;
+font-weight: bolder;
+}
+.who-we-are{
+    background: #fff;
+    height: 400px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.home_h1::after{
+    content: "";
+    position: absolute;
+    width: 2px;
+    height: 8%;
+    margin-left: 20px;
+    top: px;
+    background: #037440;
+    }
+.image_box {
+background: url('../Img/about.jpg');
+background-size: cover;
+background-position: bottom;
+height: 600px;
+width: 100%;
+position: relative;
+top: -100px
+/* box-shadow: rgba(0,0,0,0.45) 0px 25px 20px -20px !important; */
+/* box-shadow: rgba(50, 50, 93, 0.25) 0px 50px 100px -20px, rgba(0,0,0,0.3) 0px 30px 60px -30px; */
+}
+.text{
+font-family: pangram;
+color:#000;
+font-size: 19px;
+line-height: 34px;
+}
+.service{
+background-color: #fff;
+padding-bottom: 70px;
+margin-top: 70px;
+}
+.boost{
+    background: url('../Img/boost.jpg');
+    height: 400px;
+    background-size: cover;
+}
+.revenue{
+    background: url('../Img/revenue.jpg');
+    height: 400px;
+    background-size: cover;
+}
+.resident{
+    background: url('../Img/load.jpg');
+    height: 400px;
+    background-size: cover;
+}
+.time{
+    background: url('../Img/time.jpg');
+    height: 400px;
+    background-size: cover;
+}
+.border{
+    
+height: 4px;
+width: 90px;
+background-color: #73f84b;}
+.ready{
+height: 300px;
+display: flex;
+justify-content: center;
+align-items: center;
+}
+.footer{
+background-color: #000;
+height: 40px;
+display: flex;
+justify-content: center;
+align-items: center;
+}
+
+
+
+@media (max-width:600px){
+    .heroe{
+        height: 600px;
+        background-position-x: -285px;
+    }
+    .home_h1::after{
+height: 5%;
+    }
+    .who-we-are{
+        height: 300px;
+    }
+    .image_box{
+        height: 300px;
+    }
+    .service{
+        margin-top: 40px;
+    }
+    .text{
+        font-size: 15px;
+        line-height: 30px;
+    }
+    .service h4{
+        font-size: 25px !important;
+        line-height: 40px;
+    }
+    .boost{
+        background: url('../Img/boost.jpg');
+        height: 300px;
+        background-size: cover;
+    }
+    .revenue{
+        background: url('../Img/revenue.jpg');
+        height: 300px;
+        background-size: cover;
+    }
+    .resident{
+        background: url('../Img/load.jpg');
+        height: 300px;
+        background-size: cover;
+    }
+    .time{
+        background: url('../Img/time.jpg');
+        height: 300px;
+        background-size: cover;
+    }
+    .hereo_caption{
+        font-size: 13px;
+        line-height: 15px !important;
+    }
+
+}

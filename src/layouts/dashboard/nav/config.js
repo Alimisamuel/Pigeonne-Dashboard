@@ -1,4 +1,5 @@
 // component
+import ApartmentIcon from '@mui/icons-material/Apartment';
 import SvgColor from '../../../components/svg-color';
 
 // ----------------------------------------------------------------------
@@ -15,7 +16,7 @@ const navConfig = [
   {
     title: 'properties',
     path: '/dashboard/properties',
-    icon: icon('ic_cart'),
+    icon:<ApartmentIcon/>
   },
 
 ];

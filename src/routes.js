@@ -12,6 +12,7 @@ import Page404 from './pages/Page404';
 import DashboardAppPage from './pages/DashboardAppPage';
 
 import UserPage from './pages/UserPage';
+import Home from './pages/Home';
 
 // ----------------------------------------------------------------------
 
@@ -51,9 +52,13 @@ export default function Router() {
       element: <ForgetPassword />,
     },
     {
+      path: '/home',
+      element: <Home />,
+    },
+    {
       element: <SimpleLayout />,
       children: [
-        { element: <Navigate to="/dashboard/app" />, index: true },
+        { element: <Navigate to="/home" />, index: true },
         { path: '404', element: <Page404 /> },
         { path: '*', element: <Navigate to="/404" /> },
       ],

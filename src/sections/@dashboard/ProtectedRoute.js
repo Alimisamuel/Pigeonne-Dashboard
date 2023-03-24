@@ -4,7 +4,8 @@ import { Navigate } from 'react-router-dom'
 
 const ProtectedRoute = ({children}) => {
   const user = JSON.parse(window.localStorage.getItem('user'));
-    if (!user){
+
+      if (user == null){
         return <Navigate to="/login" / >
     }
   return children;

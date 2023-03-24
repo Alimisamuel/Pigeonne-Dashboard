@@ -1,5 +1,5 @@
 import { Helmet } from 'react-helmet-async';
-import { filter, } from 'lodash';
+import { filter } from 'lodash';
 import Modal from '@mui/material/Modal';
 import { useEffect, useState } from 'react';
 // @mui
@@ -75,10 +75,11 @@ const style = {
     xs: 370,
     sm: 550,
   },
+
   bgcolor: 'background.paper',
 
   boxShadow: 24,
-  p: 4,
+  p: 0,
 };
 
 const TABLE_HEAD = [
@@ -115,18 +116,16 @@ function Row(props, docid) {
   const handleClickPop = (event) => {
     setAnchorEl(event.currentTarget);
   };
-    // ----------------------------------------------------------------------
+  // ----------------------------------------------------------------------
 
   const handleClosePop = () => {
     setAnchorEl(null);
   };
-    // ----------------------------------------------------------------------
+  // ----------------------------------------------------------------------
 
   const openPop = Boolean(anchorEl);
 
   const id = openPop ? 'simple-popover' : undefined;
-
-
 
   // Get single property for modal
   // ----------------------------------------------------------------------
@@ -155,17 +154,12 @@ function Row(props, docid) {
       });
   };
 
-
-
   // Get single property for Collapse
   // ----------------------------------------------------------------------
 
   // ----------------------------------------------------------------------
 
-
-
   const handleCollapse = (id) => {
-
     setOpenCol(!openCol);
     const docRef = projectFirestore.collection('Properties').doc(id);
     docRef
@@ -189,7 +183,6 @@ function Row(props, docid) {
         console.log('Error getting document:', error);
       });
 
-
     documentUnit.map((user) => {
       const ref = projectFirestore.collection('Delivery').where('userId', '==', user.id);
       const unsubscribe = ref.onSnapshot(
@@ -209,7 +202,7 @@ function Row(props, docid) {
       );
       return () => unsubscribe();
     });
-  
+
     const ref = projectFirestore.collection('Users').where('propertyId', '==', id);
     const unsubscribe = ref.onSnapshot(
       (snapshot) => {
@@ -217,7 +210,6 @@ function Row(props, docid) {
         snapshot.docs.forEach((doc) => {
           result.push({ ...doc.data(), id: doc.id });
           console.log('Samuu', result);
-      
         });
 
         // update State
@@ -235,8 +227,7 @@ function Row(props, docid) {
 
   // ----------------------------------------------------------------------
 
-  const datum = deliveryUnit.length ?? []
-
+  const datum = deliveryUnit.length ?? [];
 
   const handleSaveChanges = (id) => {
     setLoading(true);
@@ -280,10 +271,7 @@ function Row(props, docid) {
           onClick={() => handleOpen(row.id)}
         >
           <Tooltip title="Click to edit and delete">
-            <Typography variant='body'>
-
-          {row.propName}
-            </Typography>
+            <Typography variant="body">{row.propName}</Typography>
           </Tooltip>
         </TableCell>
         <TableCell>{row.id}</TableCell>
@@ -334,72 +322,97 @@ function Row(props, docid) {
         aria-describedby="modal-modal-description"
       >
         <Box sx={style}>
-          <Box mb={2} sx={{ display: 'flex', justifyContent: 'space-between' }}>
-            <Typography variant="h6" sx={{ fontWeight: 'bolder' }}>
-              Edit and view property informations
-            </Typography>
-            <IconButton onClick={handleClose}>
-              <HighlightOffIcon />
-            </IconButton>
-          </Box>
+          <Box p={5}>
+            <Box
+              className="dashboard_banner"
+              mb={2}
+              sx={{ display: 'flex', justifyContent: 'space-between', color: '#fff', py: 3, px: 2 }}
+            >
+              <Typography variant="h6" sx={{ fontWeight: 'bolder' }}>
+                Edit and view property informations
+              </Typography>
+              <IconButton onClick={handleClose}>
+                <HighlightOffIcon sx={{ color: '#fff' }} />
+              </IconButton>
+            </Box>
 
-          <Divider sx={{ mb: 5 }} />
+            <Divider sx={{ mb: 5 }} />
 
-          {/* <<<<<<<<<<<>>>>>>>>>>>>>>>> */}
-          <TextField
-            variant="standard"
-            type="text"
-            value={propName}
-            fullWidth
-            onChange={(e) => setPropName(e.target.value)}
-            size="small"
-            margin="normal"
-            label="Property Name"
-          />
+            {/* <<<<<<<<<<<>>>>>>>>>>>>>>>> */}
+            <TextField
+              variant="standard"
+              type="text"
+              value={propName}
+              fullWidth
+              onChange={(e) => setPropName(e.target.value)}
+              size="small"
+              margin="normal"
+              label="Property Name"
+            />
 
-          <TextField
-            variant="standard"
-            type="text"
-            value={address}
-            fullWidth
-            margin="normal"
-            onChange={(e) => setaddress(e.target.value)}
-            size="small"
-            label="Property Address"
-          />
+            <TextField
+              variant="standard"
+              type="text"
+              value={address}
+              fullWidth
+              margin="normal"
+              onChange={(e) => setaddress(e.target.value)}
+              size="small"
+              label="Property Address"
+            />
 
-          <TextField
-            variant="standard"
-            type="text"
-            value={propUnit}
-            fullWidth
-            margin="normal"
-            onChange={(e) => setUnit(e.target.value)}
-            size="small"
-            label="Total No. of  Units"
-          />
+            <TextField
+              variant="standard"
+              type="text"
+              value={propUnit}
+              fullWidth
+              margin="normal"
+              onChange={(e) => setUnit(e.target.value)}
+              size="small"
+              label="Total No. of  Units"
+            />
 
-          {/* <<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>> */}
-
-          <Box sx={{ mt: 4, border: '1px solid #000', borderRadius: '5px', p: 3 }}>
-            <Grid container spacing={3} p={2}>
-              <Grid item>
-                <Typography variant="h6" sx={{ fontWeight: 'bolder' }}>
-                  Document ID:
-                </Typography>
-                <Typography variant="body1">{propID}</Typography>
+            {/* <<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>> */}
+{/* 
+            <Box sx={{ mt: 4, 
+              border: '0.5px solid #d3d3d3',
+               borderRadius: '5px',
+                p: {
+                  lg:3,
+                  xs:2
+                } }}>
+              <Grid container spacing={0}>
+                <Grid item>
+                  <Typography variant="h6" sx={{ fontWeight: 'bolder' }}>
+                    Document ID:
+                  </Typography>
+                  <Typography variant="body1">{propID}</Typography>
+                </Grid>
+                <Grid Item ml={5}>
+                  <Typography variant="h6" sx={{ fontWeight: 'bolder' }}>
+                    Date Created:
+                  </Typography>
+                  <Typography variant="body1">{createdAt}</Typography>
+                </Grid>
               </Grid>
-              <Grid Item ml={4}>
-                <Typography variant="h6" sx={{ fontWeight: 'bolder' }}>
-                  Date Created:
-                </Typography>
-                <Typography variant="body1">{createdAt}</Typography>
-              </Grid>
-            </Grid>
+            </Box> */}
           </Box>
           {/* <<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>> */}
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 5 }}>
-            <LoadingButton variant="outlined" color="error" onClick={handleClickPop}>
+          <Box
+            sx={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              mt: 2,
+              p: {
+                lg: 3,
+                xs: 1,
+              },
+              bgcolor: '#d3d3d3',
+              width: '100%',
+              borderBottom: '3px solid #037440',
+            }}
+          >
+            <LoadingButton color="error" onClick={handleClickPop}>
               <DeleteIcon sx={{ fontSize: '15px', mr: 1 }} />
               Delete{' '}
             </LoadingButton>
@@ -493,8 +506,6 @@ function getComparator(order, orderBy) {
     : (a, b) => -descendingComparator(a, b, orderBy);
 }
 
-
-
 function applySortFilter(array, comparator, query, date) {
   const stabilizedThis = array.map((el, index) => [el, index]);
   stabilizedThis.sort((a, b) => {
@@ -506,10 +517,7 @@ function applySortFilter(array, comparator, query, date) {
     return filter(array, (_user) => _user.propName.toLowerCase().indexOf(query.toLowerCase()) !== -1);
   }
   if (date) {
-    return filter(
-      array,
-      (_user) => moment(_user.createdAt.seconds * 1000).diff(moment(), 'day') >= date
-    );
+    return filter(array, (_user) => moment(_user.createdAt.seconds * 1000).diff(moment(), 'day') >= date);
   }
   // if(date === "thisWeek"){
   //   console.log("Happy")
@@ -523,7 +531,6 @@ function applySortFilter(array, comparator, query, date) {
   // }
   return stabilizedThis.map((el) => el[0]);
 }
-
 
 // ----------------------------------------------------------------------
 
@@ -554,13 +561,11 @@ export default function UserPage(props) {
 
   // ----------------------------------------------------------------------
 
-
   const handleRequestSort = (event, property) => {
     const isAsc = orderBy === property && order === 'asc';
     setOrder(isAsc ? 'desc' : 'asc');
     setOrderBy(property);
   };
-
 
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
@@ -635,11 +640,9 @@ export default function UserPage(props) {
                     rowCount={USERLIST.length}
                     numSelected={selected.length}
                     onRequestSort={handleRequestSort}
-       
                   />
 
                   <TableBody>
-         
                     {filteredUsers.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => {
                       const { propName, id, propUnit } = row;
 

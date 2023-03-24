@@ -27,7 +27,7 @@ export default function AccountPopover() {
 
 
   const [open, setOpen] = useState(null);
-  const {user} = useAuthContext()
+  const user = JSON.parse(window.localStorage.getItem('user'));
   const {logout} = useLogout()
 
   const handleOpen = (event) => {
@@ -85,7 +85,9 @@ const handleCloseModal = () =>{
       >
         <Box sx={{ my: 1.5, px: 2.5 }}>
           <Typography variant="subtitle2" noWrap>
-            {user.displayName}
+              { user === null?
+            <Skeleton variant="text"  />:
+              user.displayName} 
           </Typography>
           <Typography variant="body2" sx={{ color: 'text.secondary' }} noWrap>
 
